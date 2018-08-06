@@ -1,0 +1,15 @@
+{
+  "name": "rollup-plugin-loadz0r",
+  "version": "0.1.0",
+  "description": "Rollup plugin to make code splitting “just work”",
+  "main": "index.js",
+  "scripts": {
+    "fmt": "prettier --write *.js *.md",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Surma <surma@google.com>",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "prettier": "^1.14.0"
+  }
+}
