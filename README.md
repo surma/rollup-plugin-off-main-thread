@@ -1,8 +1,12 @@
 # rollup-plugin-loadz0r
 
-This ill-named [rollup] plugin makes code splitting with rollup “just work”, even with workers.
+An ill-named rollup plugin that makes code splitting “just work”, even with workers.
 
-The plugin consists of a rollup plugin that injects a tiny (~380B gzip’d) AMD loader to each entry file. This way you don’t need to load a fully fledged AMD loader and pay additional roundtrips until your app boots up. The AMD loader is so tiny because _it is not generaly purpose_, but can probably only load the AMD modules emitted by rollup.
+Code splitting is important to make loading more efficient. This becomes literally doubly important to avoid double loading when there are common dependencies between multiple bundles (e.g. oe for worker and one for the UI thread).
+
+**This plugin is only necessary for as long as there is no mainstream support for modules in workers.** Once modules in workers land, just use rollup’s ES Module output format.
+
+The plugin injects a tiny (~380B gzip’d) almost-AMD loader into each entry bundle. The AMD loader is this tiny because _it is not general purpose_. It’s probably not feasibly to use it outside of rollup.
 
 ## Usage
 
@@ -23,15 +27,7 @@ export default {
 };
 ```
 
-```html
-<!doctype html>
-<!-- ... -->
-<script src="main.js"></script>
-<!-- Legit. That’s it. -->
-```
-
-[rollup]: https://rollupjs.org/guide/en
+[rollup]: https://rollupjs.org/
 
 ---
-
 License Apache-2.0
