@@ -10,6 +10,6 @@
   "author": "Surma <surma@google.com>",
   "license": "Apache-2.0",
   "devDependencies": {
-    "prettier": "^1.14.0"
+    "prettier": "1.14.0"
   }
 }
