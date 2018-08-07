@@ -2,6 +2,10 @@
 
 An ill-named rollup plugin that makes code splitting “just work”, even with workers.
 
+```
+$ npm install --save rollup-plugin-loadz0r
+```
+
 Code splitting is important to make loading more efficient. This becomes literally doubly important to avoid double loading when there are common dependencies between multiple bundles (e.g. oe for worker and one for the UI thread).
 
 **This plugin is only necessary for as long as there is no mainstream support for modules in workers.** Once modules in workers land, just use rollup’s ES Module output format.
