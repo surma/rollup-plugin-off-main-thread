@@ -1,6 +1,6 @@
 {
   "name": "rollup-plugin-loadz0r",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Rollup plugin to make code splitting “just work”",
   "main": "index.js",
   "scripts": {
