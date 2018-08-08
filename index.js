@@ -28,7 +28,7 @@ module.exports = function(opts = {}) {
   return {
     name: "loadz0r",
 
-    options({input}) {
+    options({ input }) {
       inputs = input;
     },
 
@@ -52,17 +52,16 @@ module.exports = function(opts = {}) {
       code = `define("${id}", ${code}`;
 
       // If not already done, resolve input names to fully qualified moduled IDs
-      if(!resolvedInputs) {
+      if (!resolvedInputs) {
         resolvedInputs = Promise.all(inputs.map(id => this.resolveId(id)));
       }
-      return resolvedInputs
-        .then(inputs => {
-          // If this is an entry module, add the loader code.
-          if(isEntryModule(chunk, inputs)) {
-            code = opts.loader + code;
-          }
-          return { code, map: null };
-        });
+      return resolvedInputs.then(inputs => {
+        // If this is an entry module, add the loader code.
+        if (isEntryModule(chunk, inputs)) {
+          code = opts.loader + code;
+        }
+        return { code, map: null };
+      });
     }
   };
 };
