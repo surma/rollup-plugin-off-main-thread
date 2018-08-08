@@ -11,5 +11,9 @@
   "license": "Apache-2.0",
   "devDependencies": {
     "prettier": "1.14.0"
+  },
+  "repository" : {
+    "type" : "git",
+    "url" : "https://github.com/surma/rollup-plugin/loadz0r"
   }
 }
