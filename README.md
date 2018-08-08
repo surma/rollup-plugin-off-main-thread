@@ -6,11 +6,13 @@ An ill-named rollup plugin that makes code splitting “just work”, even with 
 $ npm install --save rollup-plugin-loadz0r
 ```
 
-Code splitting is important to make loading more efficient. This becomes literally doubly important to avoid double loading when there are common dependencies between multiple bundles (e.g. oe for worker and one for the UI thread).
+Code splitting is important to make loading more efficient by only loading what you need. This becomes literally doubly important when you are using workers (including service workers), as [they might share dependencies with your UI thread and you don’t want to load the same code twice][splitting]. That’s the point where you usually run into the issue that workers don’t have support for modules anywhere just yet. To work around this you can either pick a full-blown module loader like [RequireJS] or [SystemJS] **or you can use loadz0r!!!!1!11**.
+
+The plugin packs a tiny (~380B gzip’d) almost-AMD loader that is specifically tailored to the output that rollup produces. It is so small in fact, that it is totally acceptable to just prepend the loader to all entry point modules. This way you don’t have to load a module loader and then pay another round-trip to load your bootstrap code.
 
 **This plugin is only necessary for as long as there is no mainstream support for modules in workers.** Once modules in workers land, just use rollup’s ES Module output format.
 
-The plugin injects a tiny (~380B gzip’d) almost-AMD loader into each entry bundle. The AMD loader is this tiny because _it is not general purpose_. It’s probably not feasibly to use it outside of rollup.
+> Note: The reason the loader is so small is because _it is not a general purpose loader_. It most likely won’t work with anything but rollup generated bundles.
 
 ## Usage
 
@@ -32,6 +34,10 @@ export default {
 ```
 
 [rollup]: https://rollupjs.org/
+[requirejs]: https://requirejs.org/
+[systemjs]: https://github.com/systemjs/systemjs
+[splitting]: https://twitter.com/DasSurma/status/1013489346090012672
 
 ---
+
 License Apache-2.0
