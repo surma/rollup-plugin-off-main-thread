@@ -10,11 +10,13 @@
   "author": "Surma <surma@google.com>",
   "license": "Apache-2.0",
   "devDependencies": {
-    "preprocessor": "1.4.0",
     "prettier": "1.14.1"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/surma/rollup-plugin-loadz0r"
+  },
+  "dependencies": {
+    "preprocessor": "^1.4.0"
   }
 }
