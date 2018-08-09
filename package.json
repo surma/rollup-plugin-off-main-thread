@@ -4,12 +4,13 @@
   "description": "Rollup plugin to make code splitting “just work”",
   "main": "index.js",
   "scripts": {
-    "fmt": "prettier --write *.js *.md",
+    "fmt": "prettier --write *.js *.md *.json",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Surma <surma@google.com>",
   "license": "Apache-2.0",
   "devDependencies": {
+    "preprocessor": "^1.4.0",
     "prettier": "1.14.1"
   },
   "repository": {

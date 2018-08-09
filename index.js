@@ -12,17 +12,22 @@
  */
 
 const { readFileSync } = require("fs");
-const { dirname, join } = require("path");
+const { join } = require("path");
+const Preprocessor = require("preprocessor");
 
 function isEntryModule(chunk, inputs) {
   return chunk.orderedModules.some(module => inputs.includes(module.id));
 }
 
+const defaultOpts = {
+  loader: readFileSync(join(__dirname, "/loader.js")),
+  useEval: false
+};
 module.exports = function(opts = {}) {
-  if (!opts.loader) {
-    const loaderPath = join(__dirname, "/loader.js");
-    opts.loader = readFileSync(loaderPath);
-  }
+  opts = { ...defaultOpts, ...opts };
+
+  opts.loader = new Preprocessor(opts.loader, ".").process(opts);
+
   let inputs;
   let resolvedInputs;
   return {

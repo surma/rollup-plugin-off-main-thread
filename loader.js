@@ -22,19 +22,24 @@
 
   async function singleRequire(name, resolve) {
     if (!registry[name]) {
-      await new Promise(resolve => {
-        if ("importScripts" in self) {
-          importScripts(name);
-          resolve();
-        } else {
+      // #ifdef useEval
+      const code = await fetch(name).then(resp => resp.text());
+      eval(code);
+      // #else
+      await new Promise(async resolve => {
+        if ("document" in self) {
           const script = document.createElement("script");
           script.src = name;
           // Ya never know
           script.defer = true;
           document.head.appendChild(script);
           script.onload = resolve;
+        } else {
+          importScripts(name);
+          resolve();
         }
       });
+      // #endif
 
       if (!registry[name]) {
         throw new Error(`Module ${name} didn’t register its module`);

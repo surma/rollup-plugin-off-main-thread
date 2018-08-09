@@ -33,6 +33,18 @@ export default {
 };
 ```
 
+## Options
+
+```js
+{
+  // ...
+  plugins: [loadz0r(options)];
+}
+```
+
+- `loader`: A string containing the source of the loader. If `undefined,` loadz0r will use the aforementioned minimal AMD loader (see `loader.js`).
+- `useEval`: Use `fetch()` + `eval()` to load dependencies instead of `<script>` tags and `importScripts()`. _This is not CSP compliant, but is required if you want to use dynamic imports in ServiceWorker_.
+
 [rollup]: https://rollupjs.org/
 [requirejs]: https://requirejs.org/
 [systemjs]: https://github.com/systemjs/systemjs
