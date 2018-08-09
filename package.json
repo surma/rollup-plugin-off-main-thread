@@ -10,7 +10,7 @@
   "author": "Surma <surma@google.com>",
   "license": "Apache-2.0",
   "devDependencies": {
-    "preprocessor": "^1.4.0",
+    "preprocessor": "1.4.0",
     "prettier": "1.14.1"
   },
   "repository": {
