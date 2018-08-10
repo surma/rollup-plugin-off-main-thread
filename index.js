@@ -39,7 +39,12 @@ module.exports = function(opts = {}) {
 
     transformChunk(code, outputOptions, chunk) {
       if (outputOptions.format !== "amd") {
-        throw new Error(`You must set output.format to 'amd'`);
+        throw new Error("You must set output.format to 'amd'");
+      }
+      if (outputOptions.banner && outputOptions.banner.length > 0) {
+        throw new Error(
+          "Loadz0r currently doesn’t work with `banner`. Feel free to submit a PR at https://github.com/surma/rollup-plugin-loadz0r"
+        );
       }
       const id = `./${chunk.id}`;
       // FIXME (@surma): Is this brittle? HELL YEAH.
