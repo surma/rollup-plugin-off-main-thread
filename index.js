@@ -62,7 +62,7 @@ module.exports = function(opts = {}) {
       // to skip the dependency array. But our minimal loader expects it, so
       // we add it back in.
       if (!code.startsWith("define([")) {
-        magicCode.overwrite(0, 'define('.length, 'define([],');
+        magicCode.overwrite(0, 'define('.length, `define("${id}", [],`);
       }
 
       // If not already done, resolve input names to fully qualified moduled IDs
