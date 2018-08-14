@@ -14,6 +14,7 @@
 const { readFileSync } = require("fs");
 const { join } = require("path");
 const Preprocessor = require("preprocessor");
+const MagicString = require("magic-string");
 
 function isEntryModule(chunk, inputs) {
   return chunk.orderedModules.some(module => inputs.includes(module.id));
@@ -56,16 +57,13 @@ module.exports = function(opts = {}) {
       // FIXME (@surma): Is this brittle? HELL YEAH.
       // Happy to accept PRs that make this more robust.
 
-      // Strip off `define(` at the start
-      code = code.substr("define(".length);
+      const magicCode = new MagicString(code);
       // If the module does not have any dependencies, it’s technically okay
       // to skip the dependency array. But our minimal loader expects it, so
       // we add it back in.
-      if (!code.startsWith("[")) {
-        code = `[], ${code}`;
+      if (!code.startsWith("define([")) {
+        magicCode.overwrite(0, 'define('.length, 'define([],');
       }
-      // And add the `define(` back in with the module name inlined.
-      code = `define("${id}", ${code}`;
 
       // If not already done, resolve input names to fully qualified moduled IDs
       if (!resolvedInputs) {
@@ -74,9 +72,12 @@ module.exports = function(opts = {}) {
       return resolvedInputs.then(inputs => {
         // If this is an entry module, add the loader code.
         if (isEntryModule(chunk, inputs)) {
-          code = opts.loader + code;
+          magicCode.prepend(opts.loader);
         }
-        return { code, map: null };
+        return {
+          code: magicCode.toString(),
+          map: magicCode.generateMap()
+        }
       });
     }
   };
