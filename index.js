@@ -35,6 +35,12 @@ module.exports = function(opts = {}) {
 
     options({ input }) {
       inputs = input;
+      if(typeof inputs === "string") {
+        inputs = [inputs];
+      }
+      if(typeof inputs === "object") {
+        inputs = Object.values(inputs);
+      }
     },
 
     transformChunk(code, outputOptions, chunk) {
