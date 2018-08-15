@@ -36,10 +36,10 @@ module.exports = function(opts = {}) {
 
     options({ input }) {
       inputs = input;
-      if(typeof inputs === "string") {
+      if (typeof inputs === "string") {
         inputs = [inputs];
       }
-      if(typeof inputs === "object") {
+      if (typeof inputs === "object") {
         inputs = Object.values(inputs);
       }
     },
@@ -58,12 +58,14 @@ module.exports = function(opts = {}) {
       // Happy to accept PRs that make this more robust.
 
       const magicCode = new MagicString(code);
+      magicCode.remove(0, "define(".length);
       // If the module does not have any dependencies, it’s technically okay
       // to skip the dependency array. But our minimal loader expects it, so
       // we add it back in.
       if (!code.startsWith("define([")) {
-        magicCode.overwrite(0, 'define('.length, `define("${id}", [],`);
+        magicCode.prepend("[],");
       }
+      magicCode.prepend(`define("${id}",`);
 
       // If not already done, resolve input names to fully qualified moduled IDs
       if (!resolvedInputs) {
@@ -76,8 +78,8 @@ module.exports = function(opts = {}) {
         }
         return {
           code: magicCode.toString(),
-          map: magicCode.generateMap()
-        }
+          map: magicCode.generateMap({ hires: true })
+        };
       });
     }
   };
