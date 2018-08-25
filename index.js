@@ -27,7 +27,8 @@ const defaultOpts = {
 module.exports = function(opts = {}) {
   opts = { ...defaultOpts, ...opts };
 
-  opts.loader = new Preprocessor(opts.loader, ".").process(opts);
+  const { loader, ...defines } = opts;
+  opts.loader = new Preprocessor(opts.loader, ".").process(defines);
 
   let inputs;
   let resolvedInputs;

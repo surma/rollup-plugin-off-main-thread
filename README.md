@@ -44,6 +44,7 @@ export default {
 
 - `loader`: A string containing the source of the loader. If `undefined,` loadz0r will use the aforementioned minimal AMD loader (see `loader.js`).
 - `useEval`: Use `fetch()` + `eval()` to load dependencies instead of `<script>` tags and `importScripts()`. _This is not CSP compliant, but is required if you want to use dynamic imports in ServiceWorker_.
+- `publicPath`: The location your AMD modules will be served from. If undefined, module URLs are relative to the current page. A value of `{ publicPath: '/scripts' }` would change `./chunk-xyz123.js` to `/scripts/chunk-xyz123.js`.
 
 [rollup]: https://rollupjs.org/
 [requirejs]: https://requirejs.org/
