@@ -13,7 +13,7 @@
 
 // If the loader is already loaded, just stop.
 if (!self.define) {
-  const singleRequire = async (name) => {
+  const singleRequire = async name => {
     if (!registry[name]) {
       // #ifdef useEval
       const code = await fetch(name).then(resp => resp.text());
@@ -43,14 +43,12 @@ if (!self.define) {
       }
     }
     return registry[name];
-  }
+  };
 
   const require = async (names, resolve) => {
-    const modules = await Promise.all(
-      names.map(singleRequire)
-    );
+    const modules = await Promise.all(names.map(singleRequire));
     resolve(modules.length === 1 ? modules[0] : modules);
-  }
+  };
 
   const registry = {
     require: Promise.resolve(require)
