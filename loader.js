@@ -11,16 +11,9 @@
  * limitations under the License.
  */
 
-(function() {
-  // If the loader is already loaded, just stop.
-  if (self.define) {
-    return;
-  }
-  const registry = {
-    require: Promise.resolve(require)
-  };
-
-  async function singleRequire(name, resolve) {
+// If the loader is already loaded, just stop.
+if (!self.define) {
+  const singleRequire = async (name, resolve) => {
     if (!registry[name]) {
       // #ifdef useEval
       const code = await fetch(name).then(resp => resp.text());
@@ -48,12 +41,16 @@
     resolve(registry[name]);
   }
 
-  async function require(names, resolve) {
+  const require = async (names, resolve) => {
     const modules = await Promise.all(
       names.map(name => new Promise(resolve => singleRequire(name, resolve)))
     );
     resolve(modules.length === 1 ? modules[0] : modules);
   }
+
+  const registry = {
+    require: Promise.resolve(require)
+  };
 
   self.define = (moduleName, depsNames, factory) => {
     if (registry[moduleName]) {
@@ -74,4 +71,4 @@
       resolve(exports);
     });
   };
-})();
+}
