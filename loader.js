@@ -13,7 +13,7 @@
 
 // If the loader is already loaded, just stop.
 if (!self.define) {
-  const singleRequire = async (name, resolve) => {
+  const singleRequire = async (name) => {
     if (!registry[name]) {
       // #ifdef useEval
       const code = await fetch(name).then(resp => resp.text());
@@ -38,12 +38,12 @@ if (!self.define) {
         throw new Error(`Module ${name} didn’t register its module`);
       }
     }
-    resolve(registry[name]);
+    return registry[name];
   }
 
   const require = async (names, resolve) => {
     const modules = await Promise.all(
-      names.map(name => new Promise(resolve => singleRequire(name, resolve)))
+      names.map(singleRequire)
     );
     resolve(modules.length === 1 ? modules[0] : modules);
   }
@@ -64,7 +64,7 @@ if (!self.define) {
           if (depName === "exports") {
             return exports;
           }
-          return new Promise(resolve => singleRequire(depName, resolve));
+          return singleRequire(depName);
         })
       );
       exports.default = factory(...deps);
