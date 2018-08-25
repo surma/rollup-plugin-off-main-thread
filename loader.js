@@ -29,7 +29,11 @@
       await new Promise(async resolve => {
         if ("document" in self) {
           const script = document.createElement("script");
+          // #ifdef publicPath
+          script.src = // #put "'" + publicPath + "' + name.slice(1);"
+          // #else
           script.src = name;
+          // #endif
           // Ya never know
           script.defer = true;
           document.head.appendChild(script);
