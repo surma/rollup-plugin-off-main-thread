@@ -11,16 +11,9 @@
  * limitations under the License.
  */
 
-(function() {
-  // If the loader is already loaded, just stop.
-  if (self.define) {
-    return;
-  }
-  const registry = {
-    require: Promise.resolve(require)
-  };
-
-  async function singleRequire(name, resolve) {
+// If the loader is already loaded, just stop.
+if (!self.define) {
+  const singleRequire = async (name) => {
     if (!registry[name]) {
       // #ifdef useEval
       const code = await fetch(name).then(resp => resp.text());
@@ -45,15 +38,19 @@
         throw new Error(`Module ${name} didn’t register its module`);
       }
     }
-    resolve(registry[name]);
+    return registry[name];
   }
 
-  async function require(names, resolve) {
+  const require = async (names, resolve) => {
     const modules = await Promise.all(
-      names.map(name => new Promise(resolve => singleRequire(name, resolve)))
+      names.map(singleRequire)
     );
     resolve(modules.length === 1 ? modules[0] : modules);
   }
+
+  const registry = {
+    require: Promise.resolve(require)
+  };
 
   self.define = (moduleName, depsNames, factory) => {
     if (registry[moduleName]) {
@@ -67,11 +64,11 @@
           if (depName === "exports") {
             return exports;
           }
-          return new Promise(resolve => singleRequire(depName, resolve));
+          return singleRequire(depName);
         })
       );
       exports.default = factory(...deps);
       resolve(exports);
     });
   };
-})();
+}
