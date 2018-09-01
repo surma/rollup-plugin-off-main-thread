@@ -22,7 +22,8 @@ function isEntryModule(chunk, inputs) {
 
 const defaultOpts = {
   loader: readFileSync(join(__dirname, "/loader.js")),
-  useEval: false
+  useEval: false,
+  publicPath: undefined
 };
 module.exports = function(opts = {}) {
   opts = { ...defaultOpts, ...opts };

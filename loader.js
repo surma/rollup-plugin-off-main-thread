@@ -24,8 +24,8 @@ if (!self.define) {
           const script = document.createElement("script");
           // #ifdef publicPath
           script.src = // #put "'" + publicPath + "' + name.slice(1);"
-          // #else
-          script.src = name;
+            // #else
+            script.src = name;
           // #endif
           // Ya never know
           script.defer = true;
