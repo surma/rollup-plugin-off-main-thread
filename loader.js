@@ -61,10 +61,20 @@ if (!self.define) {
     }
     registry[moduleName] = new Promise(async resolve => {
       let exports = {};
+      const module = {
+        // #ifdef publicPath
+        uri: location.origin + // #put "'" + publicPath + "' + moduleName.slice(1)"
+        // #else
+        uri: location.origin + moduleName.slice(1)
+        // #endif
+      };
       const deps = await Promise.all(
         depsNames.map(depName => {
           if (depName === "exports") {
             return exports;
+          }
+          if (depName === "module") {
+            return module;
           }
           return singleRequire(depName);
         })
