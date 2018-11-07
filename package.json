@@ -10,7 +10,7 @@
   "author": "Surma <surma@google.com>",
   "license": "Apache-2.0",
   "devDependencies": {
-    "prettier": "1.14.3"
+    "prettier": "1.15.1"
   },
   "repository": {
     "type": "git",
