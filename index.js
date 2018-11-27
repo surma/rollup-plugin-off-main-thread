@@ -26,7 +26,7 @@ const defaultOpts = {
   publicPath: undefined
 };
 module.exports = function(opts = {}) {
-  opts = { ...defaultOpts, ...opts };
+  opts = Object.assign({}, defaultOpts, opts);
 
   const { loader, ...defines } = opts;
   opts.loader = new Preprocessor(opts.loader, ".").process(defines);
