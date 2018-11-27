@@ -31,10 +31,16 @@ module.exports = function(config) {
     autoWatch: true,
     singleRun: true,
     concurrency: 1,
-    browsers: ["Chrome", "Firefox", "Safari"]
+    browsers: ["Chrome", "Firefox", "Safari"],
+    customLaunchers: {
+      DockerChrome: {
+        base: "ChromeHeadless",
+        flags: ["--no-sandbox"]
+      }
+    },
   };
 
-  if (process.env.INSIDE_DOCKER) configuration.browsers = ["ChromeHeadless"];
+  if (process.env.INSIDE_DOCKER) configuration.browsers = ["DockerChrome"];
 
   config.set(configuration);
 };
