@@ -4,12 +4,21 @@
   "description": "Rollup plugin to make code splitting “just work”",
   "main": "index.js",
   "scripts": {
-    "fmt": "prettier --write *.js *.md *.json",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "fmt": "prettier --write 'tests/**/*.js' *.js *.md *.json",
+    "test": "karma start"
   },
   "author": "Surma <surma@google.com>",
   "license": "Apache-2.0",
   "devDependencies": {
+    "chai": "^4.2.0",
+    "karma": "^3.1.1",
+    "karma-chai": "^0.1.0",
+    "karma-chrome-launcher": "^2.2.0",
+    "karma-firefox-launcher": "^1.1.0",
+    "karma-mocha": "^1.3.0",
+    "karma-safari-launcher": "^1.0.0",
+    "karma-safaritechpreview-launcher": "^1.0.0",
+    "mocha": "^5.2.0",
     "prettier": "1.15.2"
   },
   "repository": {
