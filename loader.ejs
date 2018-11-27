@@ -15,28 +15,28 @@
 if (!self.define) {
   const singleRequire = async name => {
     if (!registry[name]) {
-      // #ifdef useEval
-      const code = await fetch(name).then(resp => resp.text());
-      eval(code);
-      // #else
-      await new Promise(async resolve => {
-        if ("document" in self) {
-          const script = document.createElement("script");
-          // #ifdef publicPath
-          script.src = // #put "'" + publicPath + "' + name.slice(1);"
-            // #else
-            script.src = name;
-          // #endif
-          // Ya never know
-          script.defer = true;
-          document.head.appendChild(script);
-          script.onload = resolve;
-        } else {
-          importScripts(name);
-          resolve();
-        }
-      });
-      // #endif
+      <% if (useEval) { %>
+        const code = await fetch(name).then(resp => resp.text());
+        eval(code);
+      <% } else { %>
+        await new Promise(async resolve => {
+          if ("document" in self) {
+            const script = document.createElement("script");
+            <% if (publicPath) { %>
+              script.src = <%= "'" + publicPath + "' + name.slice(1)" %>
+            <% } else { %>
+              script.src = name;
+            <% } %>
+            // Ya never know
+            script.defer = true;
+            document.head.appendChild(script);
+            script.onload = resolve;
+          } else {
+            importScripts(name);
+            resolve();
+          }
+        });
+      <% } %>
 
       if (!registry[name]) {
         throw new Error(`Module ${name} didn’t register its module`);
@@ -62,11 +62,11 @@ if (!self.define) {
     registry[moduleName] = new Promise(async resolve => {
       let exports = {};
       const module = {
-        // #ifdef publicPath
-        uri: location.origin + // #put "'" + publicPath + "' + moduleName.slice(1)"
-        // #else
-        uri: location.origin + moduleName.slice(1)
-        // #endif
+        <% if (publicPath) { %>
+          uri: location.origin + <%= "'" + publicPath + "' + moduleName.slice(1)" %>
+        <% } else { %>
+          uri: location.origin + moduleName.slice(1)
+        <% } %>
       };
       const deps = await Promise.all(
         depsNames.map(depName => {

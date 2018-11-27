@@ -13,7 +13,7 @@
 
 const { readFileSync } = require("fs");
 const { join } = require("path");
-const Preprocessor = require("preprocessor");
+const ejs = require('ejs');
 const MagicString = require("magic-string");
 
 function isEntryModule(chunk, inputs) {
@@ -21,15 +21,14 @@ function isEntryModule(chunk, inputs) {
 }
 
 const defaultOpts = {
-  loader: readFileSync(join(__dirname, "/loader.js")),
+  loader: readFileSync(join(__dirname, "/loader.ejs")).toString(),
   useEval: false,
   publicPath: undefined
 };
 module.exports = function(opts = {}) {
   opts = Object.assign({}, defaultOpts, opts);
 
-  const { loader, ...defines } = opts;
-  opts.loader = new Preprocessor(opts.loader, ".").process(defines);
+  opts.loader = ejs.render(opts.loader, opts);
 
   let inputs;
   let resolvedInputs;

@@ -27,7 +27,7 @@
     "url": "https://github.com/surma/rollup-plugin-loadz0r"
   },
   "dependencies": {
-    "magic-string": "^0.25.0",
-    "preprocessor": "^1.4.0"
+    "ejs": "^2.6.1",
+    "magic-string": "^0.25.0"
   }
 }
