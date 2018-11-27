@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-describe("Simple bundle", function() {
+describe("Worker", function() {
   beforeEach(function() {
     this.ifr = document.createElement("iframe");
     document.body.append(this.ifr);
@@ -28,6 +28,6 @@ describe("Simple bundle", function() {
         done();
       }
     });
-    this.ifr.src = "/base/tests/fixtures/simple-bundle/build/runner.html";
+    this.ifr.src = "/base/tests/fixtures/worker/build/runner.html";
   });
 });
