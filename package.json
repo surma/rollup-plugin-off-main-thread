@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "fmt": "prettier --write 'tests/**/*.js' *.js *.md *.json",
-    "test": "karma start"
+    "test": "node ./run_tests.js"
   },
   "author": "Surma <surma@google.com>",
   "license": "Apache-2.0",
@@ -19,7 +19,8 @@
     "karma-safari-launcher": "^1.0.0",
     "karma-safaritechpreview-launcher": "^1.0.0",
     "mocha": "^5.2.0",
-    "prettier": "1.15.2"
+    "prettier": "1.15.2",
+    "rollup": "^0.67.3"
   },
   "repository": {
     "type": "git",
