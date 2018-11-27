@@ -17,7 +17,7 @@ module.exports = function(config) {
     frameworks: ["mocha", "chai"],
     files: [
       {
-        pattern: "tests/fixtures/*",
+        pattern: "tests/fixtures/**",
         included: false
       },
       {

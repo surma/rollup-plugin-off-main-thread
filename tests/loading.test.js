@@ -12,7 +12,22 @@
  */
 
 describe("Loader", function() {
-  it("loads transpiled modules", function() {
-    expect(4).to.equal(4);
+  beforeEach(function() {
+    this.ifr = document.createElement("iframe");
+    document.body.append(this.ifr);
+  });
+
+  afterEach(function() {
+    this.ifr.remove();
+  });
+
+  it("loads transpiled modules", function(done) {
+    window.addEventListener("message", function l(ev) {
+      if (ev.data === "a") {
+        window.removeEventListener("message", l);
+        done();
+      }
+    });
+    this.ifr.src = "/base/tests/fixtures/loading/build/runner.html";
   });
 });

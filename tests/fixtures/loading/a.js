@@ -12,5 +12,5 @@
  */
 
 export default function() {
-  self.report("a");
+  window.parent.postMessage("a");
 }
