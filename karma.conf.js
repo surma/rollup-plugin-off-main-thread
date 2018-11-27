@@ -30,15 +30,8 @@ module.exports = function(config) {
     logLevel: config.LOG_INFO,
     autoWatch: true,
     singleRun: true,
-    concurrency: Infinity,
-    browsers: [
-      "Chrome",
-      "ChromeCanary",
-      "Firefox",
-      "FirefoxNightly"
-      // "Safari",
-      // "SafariTechPreview"
-    ]
+    concurrency: 1,
+    browsers: ["Chrome", "Firefox", "Safari"]
   };
 
   if (process.env.INSIDE_DOCKER) configuration.browsers = ["ChromeHeadless"];

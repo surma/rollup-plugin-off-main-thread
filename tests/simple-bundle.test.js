@@ -11,6 +11,23 @@
  * limitations under the License.
  */
 
-export default function() {
-  window.parent.postMessage("a");
-}
+describe("Loader", function() {
+  beforeEach(function() {
+    this.ifr = document.createElement("iframe");
+    document.body.append(this.ifr);
+  });
+
+  afterEach(function() {
+    this.ifr.remove();
+  });
+
+  it("loads transpiled modules", function(done) {
+    window.addEventListener("message", function l(ev) {
+      if (ev.data === "a") {
+        window.removeEventListener("message", l);
+        done();
+      }
+    });
+    this.ifr.src = "/base/tests/fixtures/simple-bundle/build/runner.html";
+  });
+});

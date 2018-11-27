@@ -19,7 +19,7 @@ const karma = require("karma");
 const myKarmaConfig = require("./karma.conf.js");
 
 async function init() {
-  ["./tests/fixtures/loading/entry.js"].forEach(async input => {
+  ["./tests/fixtures/simple-bundle/entry.js"].forEach(async input => {
     const bundle = await rollup.rollup({
       input,
 
