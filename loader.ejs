@@ -79,7 +79,7 @@ if (!self.define) {
           return singleRequire(depName);
         })
       );
-      exports.default = factory(...deps);
+      factory(...deps);
       resolve(exports);
     });
   };

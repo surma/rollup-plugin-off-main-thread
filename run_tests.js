@@ -35,8 +35,7 @@ async function init() {
     const bundle = await rollup.rollup({
       input,
 
-      plugins: [loadz0r(config)],
-      experimentalCodeSplitting: true
+      plugins: [loadz0r(config)]
     });
     const outputOptions = {
       dir: path.join(pathName, "build"),

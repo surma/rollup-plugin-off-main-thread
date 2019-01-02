@@ -17,7 +17,7 @@ const ejs = require("ejs");
 const MagicString = require("magic-string");
 
 function isEntryModule(chunk, inputs) {
-  return chunk.orderedModules.some(module => inputs.includes(module.id));
+  return Object.keys(chunk.modules).some(module => inputs.includes(module));
 }
 
 const defaultOpts = {
@@ -45,7 +45,7 @@ module.exports = function(opts = {}) {
       }
     },
 
-    transformChunk(code, outputOptions, chunk) {
+    renderChunk(code, chunk, outputOptions) {
       if (outputOptions.format !== "amd") {
         throw new Error("You must set output.format to 'amd'");
       }
@@ -54,7 +54,7 @@ module.exports = function(opts = {}) {
           "Loadz0r currently doesn’t work with `banner`. Feel free to submit a PR at https://github.com/surma/rollup-plugin-loadz0r"
         );
       }
-      const id = `./${chunk.id}`;
+      const id = `./${chunk.fileName}`;
       // FIXME (@surma): Is this brittle? HELL YEAH.
       // Happy to accept PRs that make this more robust.
 
