@@ -37,7 +37,7 @@ module.exports = function(config) {
         base: "ChromeHeadless",
         flags: ["--no-sandbox"]
       }
-    },
+    }
   };
 
   if (process.env.INSIDE_DOCKER) configuration.browsers = ["DockerChrome"];

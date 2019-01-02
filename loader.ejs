@@ -23,7 +23,7 @@ if (!self.define) {
           if ("document" in self) {
             const script = document.createElement("script");
             <% if (publicPath) { %>
-              script.src = <%= "'" + publicPath + "' + name.slice(1)" %>
+              script.src = <%- "'" + publicPath + "' + name.slice(1)" %>
             <% } else { %>
               script.src = name;
             <% } %>
@@ -63,7 +63,7 @@ if (!self.define) {
       let exports = {};
       const module = {
         <% if (publicPath) { %>
-          uri: location.origin + <%= "'" + publicPath + "' + moduleName.slice(1)" %>
+          uri: location.origin + <%- "'" + publicPath + "' + moduleName.slice(1)" %>
         <% } else { %>
           uri: location.origin + moduleName.slice(1)
         <% } %>

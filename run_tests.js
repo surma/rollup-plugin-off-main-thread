@@ -14,6 +14,7 @@
 const rollup = require("rollup");
 const path = require("path");
 const loadz0r = require(".");
+const fs = require("fs");
 
 const karma = require("karma");
 const myKarmaConfig = require("./karma.conf.js");
@@ -22,16 +23,23 @@ async function init() {
   [
     "./tests/fixtures/simple-bundle/entry.js",
     "./tests/fixtures/dynamic-import/entry.js",
+    "./tests/fixtures/public-path/entry.js",
     "./tests/fixtures/worker/entry.js"
   ].forEach(async input => {
+    const pathName = path.dirname(input);
+    let config = {};
+    try {
+      const configPath = path.join(pathName, "config.json");
+      config = JSON.parse(fs.readFileSync(configPath).toString());
+    } catch (e) {}
     const bundle = await rollup.rollup({
       input,
 
-      plugins: [loadz0r()],
+      plugins: [loadz0r(config)],
       experimentalCodeSplitting: true
     });
     const outputOptions = {
-      dir: path.join(path.dirname(input), "build"),
+      dir: path.join(pathName, "build"),
       format: "amd"
     };
     await bundle.generate(outputOptions);

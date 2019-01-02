@@ -13,7 +13,7 @@
 
 const { readFileSync } = require("fs");
 const { join } = require("path");
-const ejs = require('ejs');
+const ejs = require("ejs");
 const MagicString = require("magic-string");
 
 function isEntryModule(chunk, inputs) {
