@@ -23,8 +23,10 @@ function isEntryModule(chunk, inputs) {
 const defaultOpts = {
   loader: readFileSync(join(__dirname, "/loader.ejs")).toString(),
   useEval: false,
-  publicPath: undefined
+  publicPath: undefined,
+  prependLoader: isEntryModule
 };
+
 module.exports = function(opts = {}) {
   opts = Object.assign({}, defaultOpts, opts);
 
@@ -74,7 +76,7 @@ module.exports = function(opts = {}) {
       }
       return resolvedInputs.then(inputs => {
         // If this is an entry module, add the loader code.
-        if (isEntryModule(chunk, inputs)) {
+        if (opts.prependLoader(chunk, inputs)) {
           magicCode.prepend(opts.loader);
         }
         return {
@@ -85,3 +87,5 @@ module.exports = function(opts = {}) {
     }
   };
 };
+
+module.exports.isEntryModule = isEntryModule;
