@@ -1,6 +1,6 @@
 # rollup-plugin-loadz0r
 
-An ill-named rollup plugin that makes code splitting “just work”, even with workers.
+An ill-named rollup plugin so you can use `import()` in every browser, even in workers.
 
 ```
 $ npm install --save rollup-plugin-loadz0r
@@ -27,7 +27,7 @@ export default {
     // You _must_ use “amd” as your format
     format: "amd"
   },
-  plugins: [loadz0r()],
+  plugins: [loadz0r()]
 };
 ```
 
