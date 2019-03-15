@@ -79,7 +79,10 @@ if (!self.define) {
           return singleRequire(depName);
         })
       );
-      factory(...deps);
+      const facValue = factory(...deps);
+      if(!exports.default) {
+        exports.default = facValue;
+      }
       resolve(exports);
     });
   };
