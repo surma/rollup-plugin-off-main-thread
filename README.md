@@ -28,8 +28,6 @@ export default {
     format: "amd"
   },
   plugins: [loadz0r()],
-  // Enable code splitting
-  experimentalCodeSplitting: true
 };
 ```
 
