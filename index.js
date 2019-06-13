@@ -24,7 +24,8 @@ const defaultOpts = {
   loader: readFileSync(join(__dirname, "/loader.ejs")).toString(),
   useEval: false,
   publicPath: undefined,
-  prependLoader: isEntryModule
+  prependLoader: isEntryModule,
+  topLevelFunctionName: 'define'
 };
 
 module.exports = function(opts = {}) {
@@ -68,7 +69,7 @@ module.exports = function(opts = {}) {
       if (!code.startsWith("define([")) {
         magicCode.prepend("[],");
       }
-      magicCode.prepend(`define("${id}",`);
+      magicCode.prepend(`${outputOptions.topLevelFunctionName}("${id}",`);
 
       // If not already done, resolve input names to fully qualified moduled IDs
       if (!resolvedInputs) {
