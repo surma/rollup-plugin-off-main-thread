@@ -22,6 +22,7 @@ const myKarmaConfig = require("./karma.conf.js");
 async function init() {
   [
     "./tests/fixtures/simple-bundle/entry.js",
+    "./tests/fixtures/import-meta/entry.js",
     "./tests/fixtures/dynamic-import/entry.js",
     "./tests/fixtures/public-path/entry.js",
     "./tests/fixtures/worker/entry.js",
