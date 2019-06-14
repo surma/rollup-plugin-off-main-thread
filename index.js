@@ -69,7 +69,7 @@ module.exports = function(opts = {}) {
       if (!code.startsWith("define([")) {
         magicCode.prepend("[],");
       }
-      magicCode.prepend(`${outputOptions.topLevelFunctionName}("${id}",`);
+      magicCode.prepend(`${opts.topLevelFunctionName}("${id}",`);
 
       // If not already done, resolve input names to fully qualified moduled IDs
       if (!resolvedInputs) {
