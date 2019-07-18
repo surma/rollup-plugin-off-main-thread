@@ -13,7 +13,7 @@
 
 const rollup = require("rollup");
 const path = require("path");
-const loadz0r = require(".");
+const omt = require(".");
 const fs = require("fs");
 
 const karma = require("karma");
@@ -38,7 +38,7 @@ async function init() {
     const bundle = await rollup.rollup({
       input,
 
-      plugins: [loadz0r(config)]
+      plugins: [omt(config)]
     });
     const outputOptions = {
       dir: path.join(pathName, "build"),

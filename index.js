@@ -104,7 +104,7 @@ module.exports = function(opts = {}) {
       }
       if (outputOptions.banner && outputOptions.banner.length > 0) {
         this.error(
-          "Loadz0r currently doesn’t work with `banner`. Feel free to submit a PR at https://github.com/surma/rollup-plugin-loadz0r"
+          "OMT currently doesn’t work with `banner`. Feel free to submit a PR at https://github.com/surma/rollup-plugin-off-main-thread"
         );
         return;
       }

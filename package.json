@@ -24,7 +24,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/surma/rollup-plugin-loadz0r"
+    "url": "https://github.com/surma/rollup-plugin-off-main-thread"
   },
   "dependencies": {
     "ejs": "^2.6.1",

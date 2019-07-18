@@ -8,13 +8,15 @@ $ npm install --save rollup-plugin-off-main-thread
 
 Workers are JavaScript’s version of threads. [Workers are important to use][when workers] as the main thread is already overloaded, especially on slower or older devices.
 
-This plugin gives Rollup an understanding of `new Worker()` and takes care of shimming module support in workers.
+This plugin takes care of shimming module support in workers and allows you to use `new Worker()`.
+
+OMT is the result of merging loadz0r and workz0r.
 
 ## Usage
 
 ```js
 // rollup.config.js
-import omt from "rollup-plugin-off-main-thread";
+import OMT from "rollup-plugin-off-main-thread";
 
 export default {
   input: ["src/main.js"],
@@ -23,7 +25,7 @@ export default {
     // You _must_ use “amd” as your format
     format: "amd"
   },
-  plugins: [omt()]
+  plugins: [OMT()]
 };
 ```
 
@@ -32,7 +34,7 @@ export default {
 ```js
 {
   // ...
-  plugins: [omt(options)];
+  plugins: [OMT(options)];
 }
 ```
 

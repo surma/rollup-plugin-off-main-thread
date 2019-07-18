@@ -4,5 +4,5 @@ services:
   - docker
 
 script:
-  - docker build -t loadz0r .
-  - docker run --rm -v `pwd`:/usr/src loadz0r
+  - docker build -t omt .
+  - docker run --rm -v `pwd`:/usr/src omt
