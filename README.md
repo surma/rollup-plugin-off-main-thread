@@ -43,6 +43,7 @@ export default {
 - `marker`: A string that is temporarily injected to mark `new Worker()` calls. It’s only purpose is to be unique enough that the string sequence can’t appear by coincidence in ohter places. The default should be fine 99% of the time.
 - `workerRegexp`: A RegExp to find `new Workers()` calls. The second capture group _must_ capture the provided file name without the quotes.
 - `filenameRegexp`: A RegExp that finds the file name after Rollup has transformed dynamic imports.
+- `amdFunctionName`: Function name to use instead of AMD’s `define`
 
 [when workers]: https://dassur.ma/things/when-workers
 

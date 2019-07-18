@@ -26,7 +26,9 @@ const defaultOpts = {
   workerRegexp: /new Worker\((["'])(.+?)\1\)/g,
   // Regexp that finds the new chunk filename in between the markers after
   // Rollup has done its thing.
-  filenameRegexp: /(["'])([./].+?(?:\.js)?)\1/
+  filenameRegexp: /(["'])([./].+?(?:\.js)?)\1/,
+  // Function name to use instead of AMD’s `define`
+  amdFunctionName: "define"
 };
 
 module.exports = function(opts = {}) {
@@ -142,7 +144,7 @@ module.exports = function(opts = {}) {
       if (!code.startsWith("define([")) {
         ms.prepend("[],");
       }
-      ms.prepend(`define("${id}",`);
+      ms.prepend(`${opts.amdFunctionName}("${id}",`);
 
       // Prepend loader if it’s an entry point or a worker file
       if (chunk.isEntry || workerFiles.includes(chunk.facadeModuleId)) {
