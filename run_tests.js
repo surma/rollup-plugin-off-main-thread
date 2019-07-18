@@ -26,6 +26,7 @@ async function init() {
     "./tests/fixtures/dynamic-import/entry.js",
     "./tests/fixtures/public-path/entry.js",
     "./tests/fixtures/worker/entry.js",
+    "./tests/fixtures/more-workers/entry.js",
     "./tests/fixtures/single-default/entry.js"
   ].forEach(async input => {
     const pathName = path.dirname(input);

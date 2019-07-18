@@ -11,6 +11,23 @@
  * limitations under the License.
  */
 
-export default function() {
-  return 1;
-}
+describe("Worker", function() {
+  beforeEach(function() {
+    this.ifr = document.createElement("iframe");
+    document.body.append(this.ifr);
+  });
+
+  afterEach(function() {
+    this.ifr.remove();
+  });
+
+  it("can load multiple workers", function(done) {
+    window.addEventListener("message", function l(ev) {
+      if (ev.data === "a") {
+        window.removeEventListener("message", l);
+        done();
+      }
+    });
+    this.ifr.src = "/base/tests/fixtures/more-workers/build/runner.html";
+  });
+});

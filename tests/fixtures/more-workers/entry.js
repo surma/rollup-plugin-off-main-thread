@@ -11,6 +11,24 @@
  * limitations under the License.
  */
 
-export default function() {
-  return 1;
+async function run() {
+  await new Promise(resolve => {
+    const w = new Worker("./worker_a.js");
+    w.addEventListener("message", ev => {
+      if (ev.data === "a") {
+        resolve();
+      }
+    });
+  });
+  await new Promise(resolve => {
+    const w = new Worker("./worker_b.js");
+    w.addEventListener("message", ev => {
+      if (ev.data === "b") {
+        resolve();
+      }
+    });
+  });
+  window.parent.postMessage("a", "*");
 }
+
+run();

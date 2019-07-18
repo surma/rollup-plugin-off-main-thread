@@ -11,6 +11,8 @@
  * limitations under the License.
  */
 
-export default function() {
-  return 1;
+async function run() {
+  const { default: b } = await import("./b.js");
+  b();
 }
+run();

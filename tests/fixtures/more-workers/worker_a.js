@@ -11,6 +11,6 @@
  * limitations under the License.
  */
 
-export default function() {
-  return 1;
-}
+import a from "./a.js";
+
+a();

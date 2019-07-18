@@ -14,5 +14,4 @@
 const w = new Worker("./worker.js");
 w.addEventListener("message", ev => {
   window.parent.postMessage(ev.data, "*");
-})
-
+});

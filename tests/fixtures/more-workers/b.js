@@ -12,5 +12,5 @@
  */
 
 export default function() {
-  return 1;
+  self.postMessage("b");
 }

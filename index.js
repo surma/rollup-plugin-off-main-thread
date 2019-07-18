@@ -26,7 +26,7 @@ const defaultOpts = {
   workerRegexp: /new Worker\((["'])(.+?)\1\)/g,
   // Regexp that finds the new chunk filename in between the markers after
   // Rollup has done its thing.
-  filenameRegexp: /(["'])([./].+?(?:\.js)?)\1/,
+  filenameRegexp: /(["'])([./].+?(?:\.js)?)\1/
 };
 
 module.exports = function(opts = {}) {
@@ -56,7 +56,10 @@ module.exports = function(opts = {}) {
 
     async transform(code, id) {
       // Copy the regexp as they are stateful and this hook is async.
-      const workerRegexp = new RegExp(opts.workerRegexp.source, opts.workerRegexp.flags);
+      const workerRegexp = new RegExp(
+        opts.workerRegexp.source,
+        opts.workerRegexp.flags
+      );
       if (!workerRegexp.test(code)) {
         return;
       }
@@ -64,27 +67,30 @@ module.exports = function(opts = {}) {
       const ms = new MagicString(code);
       // Reset the regexp
       workerRegexp.lastIndex = 0;
-      while(true) {
+      while (true) {
         const match = workerRegexp.exec(code);
-        if(!match) {
+        if (!match) {
           break;
         }
 
         const workerFile = match[2];
 
         if (!/^\.*\//.test(workerFile)) {
-          this.warn(`Paths passed to the Worker constructor must be relative or absolute, i.e. start with /, ./ or ../ (just like dynamic import!). Ignoring "${workerFile}".`);
+          this.warn(
+            `Paths passed to the Worker constructor must be relative or absolute, i.e. start with /, ./ or ../ (just like dynamic import!). Ignoring "${workerFile}".`
+          );
           continue;
         }
 
         const resolvedWorkerFile = await this.resolveId(workerFile, id);
         workerFiles.push(resolvedWorkerFile);
 
-        const workerFileStartIndex = match.index + 'new Worker('.length;
+        const workerFileStartIndex = match.index + "new Worker(".length;
         const workerFileEndIndex = match.index + match[0].length - ")".length;
         ms.appendLeft(workerFileStartIndex, prefix);
         ms.appendRight(workerFileEndIndex, suffix);
       }
+
       return {
         code: ms.toString(),
         map: ms.generateMap({ hires: true })
@@ -97,7 +103,9 @@ module.exports = function(opts = {}) {
         return;
       }
       if (outputOptions.banner && outputOptions.banner.length > 0) {
-        this.error("Loadz0r currently doesn’t work with `banner`. Feel free to submit a PR at https://github.com/surma/rollup-plugin-loadz0r");
+        this.error(
+          "Loadz0r currently doesn’t work with `banner`. Feel free to submit a PR at https://github.com/surma/rollup-plugin-loadz0r"
+        );
         return;
       }
       const ms = new MagicString(code);
@@ -114,11 +122,15 @@ module.exports = function(opts = {}) {
         }
         const newFileNameMatch = opts.filenameRegexp.exec(match[0]);
         let newFileName = newFileNameMatch[2];
-        if(!newFileName.endsWith(".js")) {
+        if (!newFileName.endsWith(".js")) {
           newFileName += ".js";
         }
 
-        ms.overwrite(match.index, match.index + match[0].length, `"${newFileName}"`);
+        ms.overwrite(
+          match.index,
+          match.index + match[0].length,
+          `"${newFileName}"`
+        );
       }
 
       // Mangle define() call
@@ -133,14 +145,14 @@ module.exports = function(opts = {}) {
       ms.prepend(`define("${id}",`);
 
       // Prepend loader if it’s an entry point or a worker file
-      if(chunk.isEntry || workerFiles.includes(chunk.facadeModuleId)) {
+      if (chunk.isEntry || workerFiles.includes(chunk.facadeModuleId)) {
         ms.prepend(opts.loader);
       }
 
       return {
         code: ms.toString(),
         map: ms.generateMap({ hires: true })
-      }
+      };
     }
   };
 };
