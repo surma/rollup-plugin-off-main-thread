@@ -12,5 +12,5 @@
  */
 
 export default function() {
-  window.parent.postMessage("a", "*");
+  return 1;
 }

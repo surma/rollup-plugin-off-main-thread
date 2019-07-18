@@ -11,23 +11,7 @@
  * limitations under the License.
  */
 
-describe("Top Level Function Name", function() {
-  beforeEach(function() {
-    this.ifr = document.createElement("iframe");
-    document.body.append(this.ifr);
-  });
+import a from "./a.js";
 
-  afterEach(function() {
-    this.ifr.remove();
-  });
-
-  it("loads with a different top level function name", function(done) {
-    window.addEventListener("message", function l(ev) {
-      if (ev.data === "a") {
-        window.removeEventListener("message", l);
-        done();
-      }
-    });
-    this.ifr.src = "/base/tests/fixtures/top-level-function-name/build/runner.html";
-  });
-});
+a();
+import("./b.js");

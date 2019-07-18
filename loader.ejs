@@ -12,7 +12,7 @@
  */
 
 // If the loader is already loaded, just stop.
-if (!self.<%- topLevelFunctionName %>) {
+if (!self.define) {
   const singleRequire = async name => {
     if (name !== 'require') {
       name = name + '.js';
@@ -25,13 +25,7 @@ if (!self.<%- topLevelFunctionName %>) {
         await new Promise(async resolve => {
           if ("document" in self) {
             const script = document.createElement("script");
-            <% if (publicPath) { %>
-              script.src = <%- "'" + publicPath + "' + name.slice(1)" %>
-            <% } else { %>
-              script.src = name;
-            <% } %>
-            // Ya never know
-            script.defer = true;
+            script.src = name;
             document.head.appendChild(script);
             script.onload = resolve;
           } else {
@@ -57,7 +51,7 @@ if (!self.<%- topLevelFunctionName %>) {
     require: Promise.resolve(require)
   };
 
-  self.<%- topLevelFunctionName %> = (moduleName, depsNames, factory) => {
+  self.define = (moduleName, depsNames, factory) => {
     if (registry[moduleName]) {
       // Module is already loading or loaded.
       return;
@@ -65,11 +59,7 @@ if (!self.<%- topLevelFunctionName %>) {
     registry[moduleName] = new Promise(async resolve => {
       let exports = {};
       const module = {
-        <% if (publicPath) { %>
-          uri: location.origin + <%- "'" + publicPath + "' + moduleName.slice(1)" %>
-        <% } else { %>
-          uri: location.origin + moduleName.slice(1)
-        <% } %>
+        uri: location.origin + moduleName.slice(1)
       };
       const deps = await Promise.all(
         depsNames.map(depName => {

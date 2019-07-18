@@ -12,7 +12,4 @@ limitations under the License.
 -->
 
 <!doctype html>
-<script>
-  const w = new Worker("./entry.js");
-  w.addEventListener("message", ev => window.parent.postMessage(ev.data, "*"));
-</script>
+<script src="entry.js"></script>
