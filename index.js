@@ -21,12 +21,12 @@ const defaultOpts = {
   useEval: false,
   // Unique marker that temporarily injected to mark Worker imports. Should be
   // unique enough to not appear in (minified) code accidentally.
-  marker: "_____TROLOLOLOL",
+  // marker: "_____TROLOLOLOL",
   // Regexp for detecting worker calls
   workerRegexp: /new Worker\((["'])(.+?)\1\)/g,
   // Regexp that finds the new chunk filename in between the markers after
   // Rollup has done its thing.
-  filenameRegexp: /(["'])([./].+?(?:\.js)?)\1/,
+  // filenameRegexp: /(["'])([./].+?(?:\.js)?)\1/,
   // Function name to use instead of AMD’s `define`
   amdFunctionName: "define"
 };
@@ -43,17 +43,8 @@ module.exports = function(opts = {}) {
   return {
     name: "off-main-thread",
 
-    async buildStart({ input }) {
+    async buildStart() {
       workerFiles = [];
-      let inputs = input;
-      if (typeof inputs === "string") {
-        inputs = [inputs];
-      }
-      if (typeof inputs === "object") {
-        inputs = Object.values(inputs);
-      }
-      resolvedInputs = await Promise.all(inputs.map(id => this.resolve(id)));
-      return null;
     },
 
     async transform(code, id) {
@@ -86,11 +77,12 @@ module.exports = function(opts = {}) {
 
         const resolvedWorkerFile = await this.resolveId(workerFile, id);
         workerFiles.push(resolvedWorkerFile);
+        const chunkRefId = this.emitChunk(resolvedWorkerFile);
 
         const workerFileStartIndex = match.index + "new Worker(".length;
         const workerFileEndIndex = match.index + match[0].length - ")".length;
-        ms.appendLeft(workerFileStartIndex, prefix);
-        ms.appendRight(workerFileEndIndex, suffix);
+        
+        ms.overwrite(workerFileStartIndex, workerFileEndIndex, `import.meta.ROLLUP_CHUNK_URL_${chunkRefId}`);
       }
 
       return {
@@ -111,29 +103,6 @@ module.exports = function(opts = {}) {
         return;
       }
       const ms = new MagicString(code);
-
-      // Remove markers from Worker constructors
-      const matcher = new RegExp(
-        `"${opts.marker}_start.+?${opts.marker}_end"`,
-        "g"
-      );
-      while (true) {
-        const match = matcher.exec(code);
-        if (!match) {
-          break;
-        }
-        const newFileNameMatch = opts.filenameRegexp.exec(match[0]);
-        let newFileName = newFileNameMatch[2];
-        if (!newFileName.endsWith(".js")) {
-          newFileName += ".js";
-        }
-
-        ms.overwrite(
-          match.index,
-          match.index + match[0].length,
-          `"${newFileName}"`
-        );
-      }
 
       // Mangle define() call
       const id = `./${chunk.fileName}`;

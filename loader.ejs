@@ -46,6 +46,9 @@ if (!self.<%- amdFunctionName %>) {
     const modules = await Promise.all(names.map(singleRequire));
     resolve(modules.length === 1 ? modules[0] : modules);
   };
+  
+  // FIXME: This is probably not generic, lol.
+  require.toUrl = id => `./${id}`;
 
   const registry = {
     require: Promise.resolve(require)
