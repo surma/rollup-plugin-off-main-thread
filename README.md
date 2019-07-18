@@ -29,6 +29,8 @@ export default {
 };
 ```
 
+I set up [a gist] to show a full setup with OMT.
+
 ## Options
 
 ```js
@@ -46,6 +48,7 @@ export default {
 - `amdFunctionName`: Function name to use instead of AMD’s `define`
 
 [when workers]: https://dassur.ma/things/when-workers
+[a gist]: https://gist.github.com/surma/a02db7b53eb3e7870bf539b906ff6ff6
 
 ---
 
