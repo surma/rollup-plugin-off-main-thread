@@ -1,7 +1,7 @@
 {
-  "name": "rollup-plugin-loadz0r",
-  "version": "0.7.2",
-  "description": "Rollup plugin to make code splitting “just work”",
+  "name": "rollup-plugin-off-mainjthread",
+  "version": "0.1.0",
+  "description": "Use Rollup with workers and ES6 modules today.",
   "main": "index.js",
   "scripts": {
     "fmt": "prettier --write 'tests/**/*.js' *.js *.md *.json",
