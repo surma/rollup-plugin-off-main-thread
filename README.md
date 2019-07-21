@@ -3,7 +3,7 @@
 Use Rollup with workers and ES6 modules _today_.
 
 ```
-$ npm install --save rollup-plugin-off-main-thread
+$ npm install --save @surma/rollup-plugin-off-main-thread
 ```
 
 Workers are JavaScript’s version of threads. [Workers are important to use][when workers] as the main thread is already overloaded, especially on slower or older devices.
@@ -16,7 +16,7 @@ OMT is the result of merging loadz0r and workz0r.
 
 ```js
 // rollup.config.js
-import OMT from "rollup-plugin-off-main-thread";
+import OMT from "@surma/rollup-plugin-off-main-thread";
 
 export default {
   input: ["src/main.js"],
