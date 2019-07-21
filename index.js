@@ -17,18 +17,22 @@ const ejs = require("ejs");
 const MagicString = require("magic-string");
 
 const defaultOpts = {
+  // A string containing the EJS template for the amd loader. If `undefined`,
+  // OMT will use `loader.ejs`.
   loader: readFileSync(join(__dirname, "/loader.ejs"), "utf8"),
+  // Use `fetch()` + `eval()` to load dependencies instead of `<script>` tags
+  // and `importScripts()`. _This is not CSP compliant, but is required if you
+  // want to use dynamic imports in ServiceWorker_.
   useEval: false,
-  // Unique marker that temporarily injected to mark Worker imports. Should be
-  // unique enough to not appear in (minified) code accidentally.
-  // marker: "_____TROLOLOLOL",
-  // Regexp for detecting worker calls
+  // A RegExp to find `new Workers()` calls. The second capture group _must_
+  // capture the provided file name without the quotes.
   workerRegexp: /new Worker\((["'])(.+?)\1\)/g,
-  // Regexp that finds the new chunk filename in between the markers after
-  // Rollup has done its thing.
-  // filenameRegexp: /(["'])([./].+?(?:\.js)?)\1/,
-  // Function name to use instead of AMD’s `define`
-  amdFunctionName: "define"
+  // Function name to use instead of AMD’s `define`.
+  amdFunctionName: "define",
+  // A function that determines whether the loader code should be prepended to a
+  // certain chunk. Should return true if the load is suppsoed to be prepended.
+  prependLoader: (chunk, workerFiles) =>
+    chunk.isEntry || workerFiles.includes(chunk.facadeModuleId)
 };
 
 module.exports = function(opts = {}) {
@@ -81,8 +85,12 @@ module.exports = function(opts = {}) {
 
         const workerFileStartIndex = match.index + "new Worker(".length;
         const workerFileEndIndex = match.index + match[0].length - ")".length;
-        
-        ms.overwrite(workerFileStartIndex, workerFileEndIndex, `import.meta.ROLLUP_CHUNK_URL_${chunkRefId}`);
+
+        ms.overwrite(
+          workerFileStartIndex,
+          workerFileEndIndex,
+          `import.meta.ROLLUP_CHUNK_URL_${chunkRefId}`
+        );
       }
 
       return {
@@ -116,7 +124,7 @@ module.exports = function(opts = {}) {
       ms.prepend(`${opts.amdFunctionName}("${id}",`);
 
       // Prepend loader if it’s an entry point or a worker file
-      if (chunk.isEntry || workerFiles.includes(chunk.facadeModuleId)) {
+      if (opts.prependLoader(chunk, workerFiles)) {
         ms.prepend(opts.loader);
       }
 

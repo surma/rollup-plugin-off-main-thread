@@ -42,10 +42,9 @@ I set up [a gist] to show a full setup with OMT.
 
 - `loader`: A string containing the EJS template for the amd loader. If `undefined`, OMT will use `loader.ejs`.
 - `useEval`: Use `fetch()` + `eval()` to load dependencies instead of `<script>` tags and `importScripts()`. _This is not CSP compliant, but is required if you want to use dynamic imports in ServiceWorker_.
-- `marker`: A string that is temporarily injected to mark `new Worker()` calls. It’s only purpose is to be unique enough that the string sequence can’t appear by coincidence in ohter places. The default should be fine 99% of the time.
 - `workerRegexp`: A RegExp to find `new Workers()` calls. The second capture group _must_ capture the provided file name without the quotes.
-- `filenameRegexp`: A RegExp that finds the file name after Rollup has transformed dynamic imports.
-- `amdFunctionName`: Function name to use instead of AMD’s `define`
+- `amdFunctionName`: Function name to use instead of AMD’s `define`.
+- `prependLoader`: A function that determines whether the loader code should be prepended to a certain chunk. Should return true if the load is suppsoed to be prepended.
 
 [when workers]: https://dassur.ma/things/when-workers
 [a gist]: https://gist.github.com/surma/a02db7b53eb3e7870bf539b906ff6ff6
