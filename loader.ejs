@@ -25,7 +25,11 @@ if (!self.<%- amdFunctionName %>) {
         await new Promise(async resolve => {
           if ("document" in self) {
             const script = document.createElement("script");
-            script.src = name;
+            <% if (publicPath) { %>
+              script.src = <%- "'" + publicPath + "' + name.slice(1)" %>
+            <% } else { %>
+              script.src = name;
+            <% } %>
             document.head.appendChild(script);
             script.onload = resolve;
           } else {
@@ -62,7 +66,11 @@ if (!self.<%- amdFunctionName %>) {
     registry[moduleName] = new Promise(async resolve => {
       let exports = {};
       const module = {
-        uri: location.origin + moduleName.slice(1)
+        <% if (publicPath) { %>
+          uri: location.origin + <%- "'" + publicPath + "' + moduleName.slice(1)" %>
+        <% } else { %>
+          uri: location.origin + moduleName.slice(1)
+        <% } %>
       };
       const deps = await Promise.all(
         depsNames.map(depName => {
