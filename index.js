@@ -124,6 +124,17 @@ module.exports = function(opts = {}) {
       };
     },
 
+    resolveFileUrl(x){
+      // "fileName: The path and file name of the emitted asset, relative to output.dir without a leading ./."
+
+      // In most cases it is also relative to html file where script is executes as html stored in root directory
+      /* Also we do not need to convert relative URL to absolute using 'new URL(relative_url,document.baseURI).href'
+         because worker constructor are fine with relative one */
+      
+      // FIXME: This is probably not generic, lol.
+      return `"./${x.fileName}"`;
+    },
+
     renderChunk(code, chunk, outputOptions) {
       if (outputOptions.format !== "amd") {
         this.error("You must set output.format to 'amd'");
