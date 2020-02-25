@@ -10,7 +10,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import workerURL from 'omt:./worker.js';
+import workerURL from "omt:./worker.js";
 
 // Set this, so it can be picked up in the test.
 self.workerURL = workerURL;

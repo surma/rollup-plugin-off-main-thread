@@ -51,7 +51,7 @@ If your worker constructor doesn't match `workerRegexp` (see options below), you
 import workerURL from "omt:./worker.js";
 import paintWorkletURL from "omt:./paint-worklet.js";
 
-const worker = new Worker(workerURL, { name: 'main-worker' });
+const worker = new Worker(workerURL, { name: "main-worker" });
 CSS.paintWorklet.addModule(paintWorkletURL);
 ```
 

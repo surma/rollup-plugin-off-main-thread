@@ -12,7 +12,8 @@
  */
 
 describe("omt: URL import with custom scheme", function() {
-  const runner = "/base/tests/fixtures/import-worker-url-custom-scheme/build/runner.html";
+  const runner =
+    "/base/tests/fixtures/import-worker-url-custom-scheme/build/runner.html";
 
   beforeEach(function() {
     this.ifr = document.createElement("iframe");
@@ -25,8 +26,8 @@ describe("omt: URL import with custom scheme", function() {
 
   it("imports as string", async function() {
     this.ifr.src = runner;
-    await new Promise(resolve => this.ifr.addEventListener('load', resolve));
-    assert.typeOf(this.ifr.contentWindow.workerURL, 'string');
+    await new Promise(resolve => this.ifr.addEventListener("load", resolve));
+    assert.typeOf(this.ifr.contentWindow.workerURL, "string");
   });
 
   it("loads transpiled modules", function(done) {

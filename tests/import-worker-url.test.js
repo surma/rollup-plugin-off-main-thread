@@ -25,8 +25,8 @@ describe("omt: URL import", function() {
 
   it("imports as string", async function() {
     this.ifr.src = runner;
-    await new Promise(resolve => this.ifr.addEventListener('load', resolve));
-    assert.typeOf(this.ifr.contentWindow.workerURL, 'string');
+    await new Promise(resolve => this.ifr.addEventListener("load", resolve));
+    assert.typeOf(this.ifr.contentWindow.workerURL, "string");
   });
 
   it("loads transpiled modules", function(done) {

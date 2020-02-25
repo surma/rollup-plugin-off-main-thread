@@ -34,7 +34,7 @@ const defaultOpts = {
   prependLoader: (chunk, workerFiles) =>
     chunk.isEntry || workerFiles.includes(chunk.facadeModuleId),
   // The scheme used when importing workers as a URL.
-  urlLoaderScheme: "omt",
+  urlLoaderScheme: "omt"
 };
 
 module.exports = function(opts = {}) {
@@ -69,7 +69,7 @@ module.exports = function(opts = {}) {
       if (!id.startsWith(urlLoaderPrefix)) return;
 
       const realId = id.slice(urlLoaderPrefix.length);
-      const chunkRef = this.emitFile({ id: realId, type: 'chunk' });
+      const chunkRef = this.emitFile({ id: realId, type: "chunk" });
       return `export default import.meta.ROLLUP_FILE_URL_${chunkRef};`;
     },
 
@@ -103,7 +103,10 @@ module.exports = function(opts = {}) {
 
         const resolvedWorkerFile = await this.resolveId(workerFile, id);
         workerFiles.push(resolvedWorkerFile);
-        const chunkRefId = this.emitFile({ id: resolvedWorkerFile, type: "chunk" });
+        const chunkRefId = this.emitFile({
+          id: resolvedWorkerFile,
+          type: "chunk"
+        });
 
         const workerFileStartIndex = match.index + "new Worker(".length;
         const workerFileEndIndex = match.index + match[0].length - ")".length;
