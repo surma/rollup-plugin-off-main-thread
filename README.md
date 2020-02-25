@@ -14,6 +14,10 @@ OMT is the result of merging loadz0r and workz0r.
 
 ## Usage
 
+I set up [a gist] to show a full setup with OMT.
+
+### Config
+
 ```js
 // rollup.config.js
 import OMT from "@surma/rollup-plugin-off-main-thread";
@@ -29,7 +33,29 @@ export default {
 };
 ```
 
-I set up [a gist] to show a full setup with OMT.
+### Auto bundling
+
+In your project's code:
+
+```js
+const worker = new Worker("./worker.js");
+```
+
+`./worker.js` will be added to the output as a chunk.
+
+### Importing workers as URLs
+
+If your worker constructor doesn't match `workerRegexp` (see options below), you might find it easier to import the worker as a URL. In your project's code:
+
+```js
+import workerURL from "omt:./worker.js";
+import paintWorkletURL from "omt:./paint-worklet.js";
+
+const worker = new Worker(workerURL, { name: "main-worker" });
+CSS.paintWorklet.addModule(paintWorkletURL);
+```
+
+`./worker.js` and `./paint-worklet.js` will be added to the output as chunks.
 
 ## Options
 
@@ -45,6 +71,7 @@ I set up [a gist] to show a full setup with OMT.
 - `workerRegexp`: A RegExp to find `new Workers()` calls. The second capture group _must_ capture the provided file name without the quotes.
 - `amdFunctionName`: Function name to use instead of AMD’s `define`.
 - `prependLoader`: A function that determines whether the loader code should be prepended to a certain chunk. Should return true if the load is suppsoed to be prepended.
+- `urlLoaderScheme`: Scheme to use when importing workers as URLs. If `undefined`, OMT will use `"omt"`.
 
 [when workers]: https://dassur.ma/things/when-workers
 [a gist]: https://gist.github.com/surma/a02db7b53eb3e7870bf539b906ff6ff6

@@ -28,7 +28,9 @@ async function init() {
     "./tests/fixtures/worker/entry.js",
     "./tests/fixtures/more-workers/entry.js",
     "./tests/fixtures/amd-function-name/entry.js",
-    "./tests/fixtures/single-default/entry.js"
+    "./tests/fixtures/single-default/entry.js",
+    "./tests/fixtures/import-worker-url/entry.js",
+    "./tests/fixtures/import-worker-url-custom-scheme/entry.js"
   ].forEach(async input => {
     const pathName = path.dirname(input);
     let config = {};

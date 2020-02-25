@@ -30,9 +30,11 @@ const defaultOpts = {
   // Function name to use instead of AMD’s `define`.
   amdFunctionName: "define",
   // A function that determines whether the loader code should be prepended to a
-  // certain chunk. Should return true if the load is suppsoed to be prepended.
+  // certain chunk. Should return true if the load is supposed to be prepended.
   prependLoader: (chunk, workerFiles) =>
-    chunk.isEntry || workerFiles.includes(chunk.facadeModuleId)
+    chunk.isEntry || workerFiles.includes(chunk.facadeModuleId),
+  // The scheme used when importing workers as a URL.
+  urlLoaderScheme: "omt"
 };
 
 module.exports = function(opts = {}) {
@@ -42,6 +44,7 @@ module.exports = function(opts = {}) {
 
   const prefix = `"${opts.marker}_start" + import(`;
   const suffix = `) + "${opts.marker}_end"`;
+  const urlLoaderPrefix = opts.urlLoaderScheme + ":";
 
   let workerFiles;
   return {
@@ -49,6 +52,25 @@ module.exports = function(opts = {}) {
 
     async buildStart() {
       workerFiles = [];
+    },
+
+    async resolveId(id, importer) {
+      if (!id.startsWith(urlLoaderPrefix)) return;
+
+      const path = id.slice(urlLoaderPrefix.length);
+      const newId = (await this.resolve(path, importer)).id;
+
+      if (!newId) throw Error(`Cannot find module '${path}'`);
+
+      return urlLoaderPrefix + newId;
+    },
+
+    load(id) {
+      if (!id.startsWith(urlLoaderPrefix)) return;
+
+      const realId = id.slice(urlLoaderPrefix.length);
+      const chunkRef = this.emitFile({ id: realId, type: "chunk" });
+      return `export default import.meta.ROLLUP_FILE_URL_${chunkRef};`;
     },
 
     async transform(code, id) {
@@ -81,7 +103,10 @@ module.exports = function(opts = {}) {
 
         const resolvedWorkerFile = await this.resolveId(workerFile, id);
         workerFiles.push(resolvedWorkerFile);
-        const chunkRefId = this.emitChunk(resolvedWorkerFile);
+        const chunkRefId = this.emitFile({
+          id: resolvedWorkerFile,
+          type: "chunk"
+        });
 
         const workerFileStartIndex = match.index + "new Worker(".length;
         const workerFileEndIndex = match.index + match[0].length - ")".length;
@@ -89,7 +114,7 @@ module.exports = function(opts = {}) {
         ms.overwrite(
           workerFileStartIndex,
           workerFileEndIndex,
-          `import.meta.ROLLUP_CHUNK_URL_${chunkRefId}`
+          `import.meta.ROLLUP_FILE_URL_${chunkRefId}`
         );
       }
 
