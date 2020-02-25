@@ -41,7 +41,7 @@ In your project's code:
 const worker = new Worker("./worker.js");
 ```
 
-`./worker.js` will be added to the output as a chunk.
+This will just work.
 
 ### Importing workers as URLs
 
