@@ -13,8 +13,12 @@ module.exports = (config, omt) => {
         if (id !== MARKER) {
           return;
         }
-        const assetReferenceId = this.emitAsset("my-asset.bin", "assetcontent");
-        return `export default import.meta.ROLLUP_ASSET_URL_${assetReferenceId}`;
+        const referenceId = this.emitFile({
+          type: "asset",
+          name: "my-asset.bin",
+          source: "assetcontent"
+        });
+        return `export default import.meta.ROLLUP_FILE_URL_${referenceId}`;
       }
     }
   ];

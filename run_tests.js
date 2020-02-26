@@ -45,7 +45,8 @@ async function init() {
     ].map(async input => {
       const pathName = path.dirname(input);
       let rollupConfig = {
-        input
+        input,
+        strictDeprecations: true
       };
       const rollupConfigPath = "./" + path.join(pathName, "rollup.config.js");
       const configPath = "./" + path.join(pathName, "config.json");
