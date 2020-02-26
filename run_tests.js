@@ -29,40 +29,42 @@ async function fileExists(file) {
 }
 
 async function init() {
-  [
-    "./tests/fixtures/simple-bundle/entry.js",
-    "./tests/fixtures/import-meta/entry.js",
-    "./tests/fixtures/dynamic-import/entry.js",
-    "./tests/fixtures/public-path/entry.js",
-    "./tests/fixtures/worker/entry.js",
-    "./tests/fixtures/more-workers/entry.js",
-    "./tests/fixtures/amd-function-name/entry.js",
-    "./tests/fixtures/single-default/entry.js",
-    "./tests/fixtures/import-worker-url/entry.js",
-    "./tests/fixtures/import-worker-url-custom-scheme/entry.js",
-    "./tests/fixtures/assets-in-worker/entry.js"
-  ].forEach(async input => {
-    const pathName = path.dirname(input);
-    let rollupConfig = {
-      input
-    };
-    const rollupConfigPath = "./" + path.join(pathName, "rollup.config.js");
-    const configPath = "./" + path.join(pathName, "config.json");
-    if (await fileExists(rollupConfigPath)) {
-      require(rollupConfigPath)(rollupConfig, omt);
-    } else if (await fileExists(configPath)) {
-      rollupConfig.plugins = [omt(require(configPath))];
-    } else {
-      rollupConfig.plugins = [omt()];
-    }
-    const bundle = await rollup.rollup(rollupConfig);
-    const outputOptions = {
-      dir: path.join(pathName, "build"),
-      format: "amd"
-    };
-    await bundle.generate(outputOptions);
-    await bundle.write(outputOptions);
-  });
+  await Promise.all(
+    [
+      "./tests/fixtures/simple-bundle/entry.js",
+      "./tests/fixtures/import-meta/entry.js",
+      "./tests/fixtures/dynamic-import/entry.js",
+      "./tests/fixtures/public-path/entry.js",
+      "./tests/fixtures/worker/entry.js",
+      "./tests/fixtures/more-workers/entry.js",
+      "./tests/fixtures/amd-function-name/entry.js",
+      "./tests/fixtures/single-default/entry.js",
+      "./tests/fixtures/import-worker-url/entry.js",
+      "./tests/fixtures/import-worker-url-custom-scheme/entry.js",
+      "./tests/fixtures/assets-in-worker/entry.js"
+    ].map(async input => {
+      const pathName = path.dirname(input);
+      let rollupConfig = {
+        input
+      };
+      const rollupConfigPath = "./" + path.join(pathName, "rollup.config.js");
+      const configPath = "./" + path.join(pathName, "config.json");
+      if (await fileExists(rollupConfigPath)) {
+        require(rollupConfigPath)(rollupConfig, omt);
+      } else if (await fileExists(configPath)) {
+        rollupConfig.plugins = [omt(require(configPath))];
+      } else {
+        rollupConfig.plugins = [omt()];
+      }
+      const bundle = await rollup.rollup(rollupConfig);
+      const outputOptions = {
+        dir: path.join(pathName, "build"),
+        format: "amd"
+      };
+      // await bundle.generate(outputOptions);
+      await bundle.write(outputOptions);
+    })
+  );
 
   const karmaConfig = { port: 9876 };
   myKarmaConfig({
