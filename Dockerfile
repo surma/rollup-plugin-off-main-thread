@@ -1,4 +1,4 @@
-FROM selenium/node-chrome:latest@sha256:c7230a03f91ccc771636d688cf9288de70ba8db49d065040871ded2e149f06e1
+FROM selenium/node-chrome:latest
 
 USER root
 
@@ -8,9 +8,10 @@ RUN apt-get update -qqy \
   && chown seluser /usr/local
 
 ENV NVM_DIR /usr/local/nvm
-RUN wget -qO- https://raw.githubusercontent.com/creationix/nvm/v0.33.2/install.sh | bash \
+RUN mkdir -p $NVM_DIR \
+  && wget -qO- https://raw.githubusercontent.com/creationix/nvm/v0.35.2/install.sh | bash \
   && source $NVM_DIR/nvm.sh \
-  && nvm install v8
+  && nvm install v12
 
 ENV CHROME_BIN /opt/google/chrome/chrome
 ENV INSIDE_DOCKER=1
