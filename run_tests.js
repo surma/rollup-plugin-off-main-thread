@@ -62,7 +62,6 @@ async function init() {
         dir: path.join(pathName, "build"),
         format: "amd"
       };
-      // await bundle.generate(outputOptions);
       await bundle.write(outputOptions);
     })
   );
