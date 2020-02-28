@@ -99,7 +99,7 @@ module.exports = function(opts = {}) {
           continue;
         }
 
-        const resolvedWorkerFile = await this.resolveId(workerFile, id);
+        const resolvedWorkerFile = (await this.resolve(workerFile, id)).id;
         workerFiles.push(resolvedWorkerFile);
         const chunkRefId = this.emitFile({
           id: resolvedWorkerFile,
