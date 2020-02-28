@@ -94,7 +94,7 @@ module.exports = function(opts = {}) {
 
         const workerFile = match[2];
 
-        if (!/^\.*\//.test(workerFile)) {
+        if (!new RegExp("^.*/").test(workerFile)) {
           this.warn(
             `Paths passed to the Worker constructor must be relative or absolute, i.e. start with /, ./ or ../ (just like dynamic import!). Ignoring "${workerFile}".`
           );
@@ -122,6 +122,10 @@ module.exports = function(opts = {}) {
         code: ms.toString(),
         map: ms.generateMap({ hires: true })
       };
+    },
+
+    resolveFileUrl(chunk) {
+      return `"./${chunk.fileName}"`;
     },
 
     renderChunk(code, chunk, outputOptions) {

@@ -19,6 +19,15 @@ const fs = require("fs");
 const karma = require("karma");
 const myKarmaConfig = require("./karma.conf.js");
 
+async function fileExists(file) {
+  try {
+    const stat = await fs.promises.stat(file);
+    return stat.isFile();
+  } catch (e) {
+    return false;
+  }
+}
+
 async function init() {
   [
     "./tests/fixtures/simple-bundle/entry.js",
@@ -30,19 +39,23 @@ async function init() {
     "./tests/fixtures/amd-function-name/entry.js",
     "./tests/fixtures/single-default/entry.js",
     "./tests/fixtures/import-worker-url/entry.js",
-    "./tests/fixtures/import-worker-url-custom-scheme/entry.js"
+    "./tests/fixtures/import-worker-url-custom-scheme/entry.js",
+    "./tests/fixtures/assets-in-worker/entry.js"
   ].forEach(async input => {
     const pathName = path.dirname(input);
-    let config = {};
-    try {
-      const configPath = path.join(pathName, "config.json");
-      config = JSON.parse(fs.readFileSync(configPath).toString());
-    } catch (e) {}
-    const bundle = await rollup.rollup({
-      input,
-
-      plugins: [omt(config)]
-    });
+    let rollupConfig = {
+      input
+    };
+    const rollupConfigPath = "./" + path.join(pathName, "rollup.config.js");
+    const configPath = "./" + path.join(pathName, "config.json");
+    if (await fileExists(rollupConfigPath)) {
+      require(rollupConfigPath)(rollupConfig, omt);
+    } else if (await fileExists(configPath)) {
+      rollupConfig.plugins = [omt(require(configPath))];
+    } else {
+      rollupConfig.plugins = [omt()];
+    }
+    const bundle = await rollup.rollup(rollupConfig);
     const outputOptions = {
       dir: path.join(pathName, "build"),
       format: "amd"
