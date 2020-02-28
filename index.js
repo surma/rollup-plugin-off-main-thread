@@ -42,8 +42,6 @@ module.exports = function(opts = {}) {
 
   opts.loader = ejs.render(opts.loader, opts);
 
-  const prefix = `"${opts.marker}_start" + import(`;
-  const suffix = `) + "${opts.marker}_end"`;
   const urlLoaderPrefix = opts.urlLoaderScheme + ":";
 
   let workerFiles;
