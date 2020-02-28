@@ -94,7 +94,7 @@ module.exports = function(opts = {}) {
 
         const workerFile = match[2];
 
-        if (!/^\.*\//.test(workerFile)) {
+        if (!new RegExp('^\.*\/').test(workerFile)) {
           this.warn(
             `Paths passed to the Worker constructor must be relative or absolute, i.e. start with /, ./ or ../ (just like dynamic import!). Ignoring "${workerFile}".`
           );
@@ -124,15 +124,8 @@ module.exports = function(opts = {}) {
       };
     },
 
-    resolveFileUrl(x){
-      // "fileName: The path and file name of the emitted asset, relative to output.dir without a leading ./."
-
-      // In most cases it is also relative to html file where script is executes as html stored in root directory
-      /* Also we do not need to convert relative URL to absolute using 'new URL(relative_url,document.baseURI).href'
-         because worker constructor are fine with relative one */
-      
-      // FIXME: This is probably not generic, lol.
-      return `"./${x.fileName}"`;
+    resolveFileUrl(chunk) {
+      return `"./${chunk.fileName}"`;
     },
 
     renderChunk(code, chunk, outputOptions) {
