@@ -13,16 +13,18 @@
 
 // If the loader is already loaded, just stop.
 if (!self.<%- amdFunctionName %>) {
-  const singleRequire = async name => {
+  const singleRequire = name => {
     if (name !== 'require') {
       name = name + '.js';
     }
+    let promise = Promise.resolve();
     if (!registry[name]) {
       <% if (useEval) { %>
-        const code = await fetch(name).then(resp => resp.text());
-        eval(code);
+        promise = fetch(name)
+          .then(resp => resp.text())
+          .then(code => eval(code));
       <% } else { %>
-        await new Promise(async resolve => {
+        promise = new Promise(async resolve => {
           if ("document" in self) {
             const script = document.createElement("script");
             script.src = name;
@@ -34,17 +36,18 @@ if (!self.<%- amdFunctionName %>) {
           }
         });
       <% } %>
-
+    }
+    return promise.then(() => {
       if (!registry[name]) {
         throw new Error(`Module ${name} didn’t register its module`);
       }
-    }
-    return registry[name];
+      return registry[name];
+    });
   };
 
-  const require = async (names, resolve) => {
-    const modules = await Promise.all(names.map(singleRequire));
-    resolve(modules.length === 1 ? modules[0] : modules);
+  const require = (names, resolve) => {
+    Promise.all(names.map(singleRequire))
+      .then(modules => resolve(modules.length === 1 ? modules[0] : modules));
   };
   
   const registry = {
@@ -56,13 +59,14 @@ if (!self.<%- amdFunctionName %>) {
       // Module is already loading or loaded.
       return;
     }
-    registry[moduleName] = new Promise(async resolve => {
+    registry[moduleName] = Promise.resolve().then(() => {
       let exports = {};
       const module = {
         uri: location.origin + moduleName.slice(1)
       };
-      const deps = await Promise.all(
+      return Promise.all(
         depsNames.map(depName => {
+          // TODO: switch-case?
           if (depName === "exports") {
             return exports;
           }
@@ -71,12 +75,13 @@ if (!self.<%- amdFunctionName %>) {
           }
           return singleRequire(depName);
         })
-      );
-      const facValue = factory(...deps);
-      if(!exports.default) {
-        exports.default = facValue;
-      }
-      resolve(exports);
+      ).then(deps => {
+        const facValue = factory(...deps);
+        if(!exports.default) {
+          exports.default = facValue;
+        }
+        return exports;
+      });
     });
   };
 }
