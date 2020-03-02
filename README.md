@@ -26,7 +26,9 @@ export default {
   input: ["src/main.js"],
   output: {
     dir: "dist",
-    // You _must_ use “amd” as your format
+    // You _must_ use either “amd” or “esm” as your format.
+    // But note that only very few browsers have native support for
+    // modules in workers.
     format: "amd"
   },
   plugins: [OMT()]
@@ -38,7 +40,7 @@ export default {
 In your project's code:
 
 ```js
-const worker = new Worker("./worker.js");
+const worker = new Worker("./worker.js", { type: "module" });
 ```
 
 This will just work.
