@@ -11,7 +11,8 @@
  * limitations under the License.
  */
 
-const w = new Worker("./worker.js");
+// The type module should get removed for AMD format!
+const w = new Worker("./worker.js", { type: "module" });
 w.addEventListener("message", ev => {
   window.parent.postMessage(ev.data, "*");
 });

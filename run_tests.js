@@ -36,6 +36,7 @@ async function init() {
       "./tests/fixtures/dynamic-import/entry.js",
       "./tests/fixtures/public-path/entry.js",
       "./tests/fixtures/worker/entry.js",
+      "./tests/fixtures/module-worker/entry.js",
       "./tests/fixtures/more-workers/entry.js",
       "./tests/fixtures/amd-function-name/entry.js",
       "./tests/fixtures/single-default/entry.js",
@@ -44,6 +45,10 @@ async function init() {
       "./tests/fixtures/assets-in-worker/entry.js"
     ].map(async input => {
       const pathName = path.dirname(input);
+      const outputOptions = {
+        dir: path.join(pathName, "build"),
+        format: "amd"
+      };
       let rollupConfig = {
         input,
         strictDeprecations: true
@@ -51,17 +56,13 @@ async function init() {
       const rollupConfigPath = "./" + path.join(pathName, "rollup.config.js");
       const configPath = "./" + path.join(pathName, "config.json");
       if (await fileExists(rollupConfigPath)) {
-        require(rollupConfigPath)(rollupConfig, omt);
+        require(rollupConfigPath)(rollupConfig, outputOptions, omt);
       } else if (await fileExists(configPath)) {
         rollupConfig.plugins = [omt(require(configPath))];
       } else {
         rollupConfig.plugins = [omt()];
       }
       const bundle = await rollup.rollup(rollupConfig);
-      const outputOptions = {
-        dir: path.join(pathName, "build"),
-        format: "amd"
-      };
       await bundle.write(outputOptions);
     })
   );

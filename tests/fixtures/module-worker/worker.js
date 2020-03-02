@@ -14,3 +14,4 @@
 import a from "./a.js";
 
 a();
+import("./b.js");

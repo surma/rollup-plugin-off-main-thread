@@ -11,6 +11,7 @@
  * limitations under the License.
  */
 
-import a from "./a.js";
-
-a();
+const w = new Worker("./worker.js", { type: "module" });
+w.addEventListener("message", ev => {
+  window.parent.postMessage(ev.data, "*");
+});

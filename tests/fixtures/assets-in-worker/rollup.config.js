@@ -1,5 +1,5 @@
 const MARKER = "my-special-import";
-module.exports = (config, omt) => {
+module.exports = (config, outputOptions, omt) => {
   config.plugins = [
     omt(),
     {

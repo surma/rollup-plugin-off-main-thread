@@ -26,7 +26,7 @@ const defaultOpts = {
   useEval: false,
   // A RegExp to find `new Workers()` calls. The second capture group _must_
   // capture the provided file name without the quotes.
-  workerRegexp: /new Worker\((["'])(.+?)\1\)/g,
+  workerRegexp: /new Worker\((["'])(.+?)\1(,[^)]+)?\)/g,
   // Function name to use instead of AMD’s `define`.
   amdFunctionName: "define",
   // A function that determines whether the loader code should be prepended to a
@@ -45,11 +45,26 @@ module.exports = function(opts = {}) {
   const urlLoaderPrefix = opts.urlLoaderScheme + ":";
 
   let workerFiles;
+  let isEsmOutput = false;
   return {
     name: "off-main-thread",
 
-    async buildStart() {
+    async buildStart(options) {
       workerFiles = [];
+    },
+
+    outputOptions({ format }) {
+      if (format === "esm" || format === "es") {
+        this.warn(
+          'Very few browsers support ES modules in Workers. If you want to your code to run in all browsers, set `output.format = "amd";`'
+        );
+        // In ESM, we never prepend a loader.
+        isEsmOutput = true;
+      } else if (format !== "amd") {
+        this.error(
+          `\`output.format\` must either be "amd" or "esm", got "${format}"`
+        );
+      }
     },
 
     async resolveId(id, importer) {
@@ -91,6 +106,15 @@ module.exports = function(opts = {}) {
         }
 
         const workerFile = match[2];
+        let optionsObject = {};
+        // Parse the optional options object
+        if (match[3] && match[3].length > 0) {
+          // FIXME: ooooof!
+          optionsObject = new Function(`return ${match[3].slice(1)};`)();
+        }
+        if (!isEsmOutput) {
+          delete optionsObject.type;
+        }
 
         if (!new RegExp("^.*/").test(workerFile)) {
           this.warn(
@@ -106,13 +130,16 @@ module.exports = function(opts = {}) {
           type: "chunk"
         });
 
-        const workerFileStartIndex = match.index + "new Worker(".length;
-        const workerFileEndIndex = match.index + match[0].length - ")".length;
+        const workerParametersStartIndex = match.index + "new Worker(".length;
+        const workerParametersEndIndex =
+          match.index + match[0].length - ")".length;
 
         ms.overwrite(
-          workerFileStartIndex,
-          workerFileEndIndex,
-          `import.meta.ROLLUP_FILE_URL_${chunkRefId}`
+          workerParametersStartIndex,
+          workerParametersEndIndex,
+          `import.meta.ROLLUP_FILE_URL_${chunkRefId}, ${JSON.stringify(
+            optionsObject
+          )}`
         );
       }
 
@@ -127,8 +154,8 @@ module.exports = function(opts = {}) {
     },
 
     renderChunk(code, chunk, outputOptions) {
-      if (outputOptions.format !== "amd") {
-        this.error("You must set output.format to 'amd'");
+      // We don’t need to do any loader processing when targeting ESM format.
+      if (isEsmOutput) {
         return;
       }
       if (outputOptions.banner && outputOptions.banner.length > 0) {
