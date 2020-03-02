@@ -66,14 +66,14 @@ if (!self.<%- amdFunctionName %>) {
       };
       return Promise.all(
         depsNames.map(depName => {
-          // TODO: switch-case?
-          if (depName === "exports") {
-            return exports;
+          switch(depName) {
+            case "exports":
+              return exports;
+            case "module":
+              return module;
+            default:
+              return singleRequire(depName);
           }
-          if (depName === "module") {
-            return module;
-          }
-          return singleRequire(depName);
         })
       ).then(deps => {
         const facValue = factory(...deps);
