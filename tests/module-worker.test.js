@@ -14,11 +14,13 @@
 describe("Module Worker", function() {
   const blob = new Blob([""], { type: "text/javascript" });
   const url = URL.createObjectURL(blob);
-  let supportsModuleWorker =
-    "type" in
-    new Worker(url, {
-      type: "module"
-    });
+  let supportsModuleWorker = false;
+  const options = {
+    get type() {
+      supportsModuleWorker = true;
+    }
+  };
+  new Worker(url, options).terminate();
   URL.revokeObjectURL(url);
 
   beforeEach(function() {
