@@ -34,7 +34,9 @@ const defaultOpts = {
   prependLoader: (chunk, workerFiles) =>
     chunk.isEntry || workerFiles.includes(chunk.facadeModuleId),
   // The scheme used when importing workers as a URL.
-  urlLoaderScheme: "omt"
+  urlLoaderScheme: "omt",
+  // Silence the warning about ESM being badly supported in workers.
+  silenceESMWorkerWarning: false,
 };
 
 module.exports = function(opts = {}) {
@@ -54,7 +56,7 @@ module.exports = function(opts = {}) {
     },
 
     outputOptions({ format }) {
-      if (format === "esm" || format === "es") {
+      if ((format === "esm" || format === "es") && !opts.silenceESMWorkerWarning) {
         this.warn(
           'Very few browsers support ES modules in Workers. If you want to your code to run in all browsers, set `output.format = "amd";`'
         );
