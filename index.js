@@ -24,6 +24,7 @@ const defaultOpts = {
   // and `importScripts()`. _This is not CSP compliant, but is required if you
   // want to use dynamic imports in ServiceWorker_.
   useEval: false,
+  publicPath: undefined,
   // A RegExp to find `new Workers()` calls. The second capture group _must_
   // capture the provided file name without the quotes.
   workerRegexp: /new Worker\((["'])(.+?)\1(,[^)]+)?\)/g,

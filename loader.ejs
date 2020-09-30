@@ -27,7 +27,11 @@ if (!self.<%- amdFunctionName %>) {
         promise = new Promise(async resolve => {
           if ("document" in self) {
             const script = document.createElement("script");
-            script.src = name;
+            <% if (publicPath) { %>
+              script.src = <%- "'" + publicPath + "' + name.slice(1)" %>
+            <% } else { %>
+              script.src = name;
+            <% } %>
             document.head.appendChild(script);
             script.onload = resolve;
           } else {
@@ -49,7 +53,7 @@ if (!self.<%- amdFunctionName %>) {
     Promise.all(names.map(singleRequire))
       .then(modules => resolve(modules.length === 1 ? modules[0] : modules));
   };
-  
+
   const registry = {
     require: Promise.resolve(require)
   };
@@ -62,7 +66,11 @@ if (!self.<%- amdFunctionName %>) {
     registry[moduleName] = Promise.resolve().then(() => {
       let exports = {};
       const module = {
-        uri: location.origin + moduleName.slice(1)
+        <% if (publicPath) { %>
+          uri: location.origin + <%- "'" + publicPath + "' + moduleName.slice(1)" %>
+        <% } else { %>
+          uri: location.origin + moduleName.slice(1)
+        <% } %>
       };
       return Promise.all(
         depsNames.map(depName => {
