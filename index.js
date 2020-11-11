@@ -73,9 +73,9 @@ module.exports = function(opts = {}) {
       if (!id.startsWith(urlLoaderPrefix)) return;
 
       const path = id.slice(urlLoaderPrefix.length);
-      const newId = (await this.resolve(path, importer)).id;
-
-      if (!newId) throw Error(`Cannot find module '${path}'`);
+      const resolved = await this.resolve(path, importer);
+      if (!resolved) throw Error(`Cannot find module '${path}' from '${importer}'`);
+      const newId = resolved.id;
 
       return urlLoaderPrefix + newId;
     },
