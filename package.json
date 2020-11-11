@@ -1,6 +1,6 @@
 {
   "name": "@surma/rollup-plugin-off-main-thread",
-  "version": "1.4.1",
+  "version": "1.4.2",
   "description": "Use Rollup with workers and ES6 modules today.",
   "main": "index.js",
   "scripts": {
