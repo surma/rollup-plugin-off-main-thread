@@ -36,7 +36,7 @@ const defaultOpts = {
   // The scheme used when importing workers as a URL.
   urlLoaderScheme: "omt",
   // Silence the warning about ESM being badly supported in workers.
-  silenceESMWorkerWarning: false,
+  silenceESMWorkerWarning: false
 };
 
 module.exports = function(opts = {}) {
@@ -56,10 +56,12 @@ module.exports = function(opts = {}) {
     },
 
     outputOptions({ format }) {
-      if ((format === "esm" || format === "es") && !opts.silenceESMWorkerWarning) {
-        this.warn(
-          'Very few browsers support ES modules in Workers. If you want to your code to run in all browsers, set `output.format = "amd";`'
-        );
+      if (format === "esm" || format === "es") {
+        if (!opts.silenceESMWorkerWarning) {
+          this.warn(
+            'Very few browsers support ES modules in Workers. If you want to your code to run in all browsers, set `output.format = "amd";`'
+          );
+        }
         // In ESM, we never prepend a loader.
         isEsmOutput = true;
       } else if (format !== "amd") {
@@ -74,7 +76,8 @@ module.exports = function(opts = {}) {
 
       const path = id.slice(urlLoaderPrefix.length);
       const resolved = await this.resolve(path, importer);
-      if (!resolved) throw Error(`Cannot find module '${path}' from '${importer}'`);
+      if (!resolved)
+        throw Error(`Cannot find module '${path}' from '${importer}'`);
       const newId = resolved.id;
 
       return urlLoaderPrefix + newId;
