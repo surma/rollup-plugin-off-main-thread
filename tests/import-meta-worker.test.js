@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Google Inc. All Rights Reserved.
+ * Copyright 2020 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -11,7 +11,9 @@
  * limitations under the License.
  */
 
-describe("import.meta", function() {
+describe("omt: use import.meta.url in Worker constructor", function() {
+  const runner = "/base/tests/fixtures/import-meta-worker/build/runner.html";
+
   beforeEach(function() {
     this.ifr = document.createElement("iframe");
     document.body.append(this.ifr);
@@ -21,13 +23,13 @@ describe("import.meta", function() {
     this.ifr.remove();
   });
 
-  it("loads transpiled modules", function(done) {
+  it("loads itself as a module", function(done) {
     window.addEventListener("message", function l(ev) {
-      if (/^https?:\/\/.+\.js$/.test(ev.data)) {
+      if (ev.data === "a") {
         window.removeEventListener("message", l);
         done();
       }
     });
-    this.ifr.src = "/base/tests/fixtures/import-meta/build/runner.html";
+    this.ifr.src = runner;
   });
 });

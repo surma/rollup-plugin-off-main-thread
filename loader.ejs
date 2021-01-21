@@ -62,7 +62,7 @@ if (!self.<%- amdFunctionName %>) {
     registry[moduleName] = Promise.resolve().then(() => {
       let exports = {};
       const module = {
-        uri: location.origin + moduleName.slice(1)
+        uri: moduleName.slice(2)
       };
       return Promise.all(
         depsNames.map(depName => {

@@ -26,7 +26,7 @@ const defaultOpts = {
   useEval: false,
   // A RegExp to find `new Workers()` calls. The second capture group _must_
   // capture the provided file name without the quotes.
-  workerRegexp: /new Worker\((["'])(.+?)\1(,[^)]+)?\)/g,
+  workerRegexp: /new Worker\((.+?)(,[^)]+)?\)/g,
   // Function name to use instead of AMD’s `define`.
   amdFunctionName: "define",
   // A function that determines whether the loader code should be prepended to a
@@ -110,12 +110,22 @@ module.exports = function(opts = {}) {
           break;
         }
 
-        const workerFile = match[2];
+        let workerFile = match[1].trim();
+        if (!/^(["'`]).+["'`]$/.test(workerFile)) {
+          this.warn(
+            `Can only handle string literals in the worker constructor. Ignoring ${workerFile}.`
+          );
+          continue;
+        }
+        // Cut of surrounding quotes.
+        workerFile = workerFile.slice(1, -1);
+
         let optionsObject = {};
         // Parse the optional options object
-        if (match[3] && match[3].length > 0) {
+        if (match[2] && match[2].length > 0) {
           // FIXME: ooooof!
-          optionsObject = new Function(`return ${match[3].slice(1)};`)();
+          // slice(1) to cut off leading comma
+          optionsObject = new Function(`return ${match[2].slice(1)};`)();
         }
         if (!isEsmOutput) {
           delete optionsObject.type;
