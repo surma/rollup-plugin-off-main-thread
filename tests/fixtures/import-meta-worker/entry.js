@@ -10,12 +10,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-if (self.document) {
-  const w = new Worker(import.meta.url);
-  w.addEventListener("message", ev => {
+import { worker } from "./a.js";
+if (worker) {
+  worker.addEventListener("message", ev => {
     window.parent.postMessage(ev.data, "*");
   });
 }
+// This should not get bundled into the worker module
 if (self.postMessage) {
-  postMessage("a");
+  postMessage("xxx");
 }

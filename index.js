@@ -111,6 +111,16 @@ module.exports = function(opts = {}) {
         }
 
         let workerFile = match[1].trim();
+        if (workerFile === "import.meta.url") {
+          // Turn the current file into a chunk
+          this.emitFile({
+            type: "chunk",
+            id
+          });
+          continue;
+        }
+        // Otherwise it has to be a string literal if this plugin
+        // is to do its job.
         if (!/^(["'`]).+["'`]$/.test(workerFile)) {
           this.warn(
             `Can only handle string literals in the worker constructor. Ignoring ${workerFile}.`

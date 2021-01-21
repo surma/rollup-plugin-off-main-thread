@@ -28,6 +28,8 @@ describe("omt: use import.meta.url in Worker constructor", function() {
       if (ev.data === "a") {
         window.removeEventListener("message", l);
         done();
+      } else {
+        done(`Unexpected message! ${ev.data}`);
       }
     });
     this.ifr.src = runner;
