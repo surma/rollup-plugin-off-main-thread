@@ -28,6 +28,6 @@ describe("Worker", function() {
         done();
       }
     });
-    this.ifr.src = "/base/tests/fixtures/worker/build/runner.html";
+    this.ifr.src = "/base/tests/fixtures/url-import-meta-worker/build/runner.html";
   });
 });

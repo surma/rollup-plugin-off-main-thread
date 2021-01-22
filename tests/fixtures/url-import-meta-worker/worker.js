@@ -1,5 +1,5 @@
 /**
- * Copyright 2021 Google Inc. All Rights Reserved.
+ * Copyright 2018 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -11,23 +11,6 @@
  * limitations under the License.
  */
 
-describe("Worker", function() {
-  beforeEach(function() {
-    this.ifr = document.createElement("iframe");
-    document.body.append(this.ifr);
-  });
+import a from "./a.js";
 
-  afterEach(function() {
-    this.ifr.remove();
-  });
-
-  it("loads transpiled modules", function(done) {
-    window.addEventListener("message", function l(ev) {
-      if (ev.data === "a") {
-        window.removeEventListener("message", l);
-        done();
-      }
-    });
-    this.ifr.src = "/base/tests/fixtures/worker/build/runner.html";
-  });
-});
+a();
