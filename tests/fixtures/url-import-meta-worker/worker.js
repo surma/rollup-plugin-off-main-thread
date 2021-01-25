@@ -11,14 +11,6 @@
  * limitations under the License.
  */
 
-/*
- * This is commented out and should be ignored by the plugin.
- * If it doesn't, Rollup and test will fail.
- * new Worker("non-existing-worker", { type: "module" });
- */
+import a from "./a.js";
 
-// The type module should get removed for AMD format!
-const w = new Worker("./worker.js", { type: "module" });
-w.addEventListener("message", ev => {
-  window.parent.postMessage(ev.data, "*");
-});
+a();

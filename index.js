@@ -15,6 +15,7 @@ const { readFileSync } = require("fs");
 const { join } = require("path");
 const ejs = require("ejs");
 const MagicString = require("magic-string");
+const tippex = require("tippex");
 
 const defaultOpts = {
   // A string containing the EJS template for the amd loader. If `undefined`,
@@ -24,9 +25,6 @@ const defaultOpts = {
   // and `importScripts()`. _This is not CSP compliant, but is required if you
   // want to use dynamic imports in ServiceWorker_.
   useEval: false,
-  // A RegExp to find `new Workers()` calls. The second capture group _must_
-  // capture the provided file name without the quotes.
-  workerRegexp: /new Worker\((.+?)(,[^)]+)?\)/g,
   // Function name to use instead of AMD’s `define`.
   amdFunctionName: "define",
   // A function that determines whether the loader code should be prepended to a
@@ -92,81 +90,97 @@ module.exports = function(opts = {}) {
     },
 
     async transform(code, id) {
-      // Copy the regexp as they are stateful and this hook is async.
-      const workerRegexp = new RegExp(
-        opts.workerRegexp.source,
-        opts.workerRegexp.flags
+      // A regexp to find static `new Worker` invocations.
+      // File part matches one of:
+      // - '...'
+      // - "..."
+      // - `import.meta.url`
+      // - `new URL('...', import.meta.url)
+      // - `new URL("...", import.meta.url)
+      // Also matches optional options param.
+      const workerRegexp = /new\s+Worker\(\s*('.*?'|".*?"|import\.meta\.url|new\s+URL\(('.*?'|".*?"),\s*import\.meta\.url\))\s*(?:,(.+?))?\)/g;
+
+      const ms = new MagicString(code);
+
+      const replacementPromises = [];
+
+      // Tippex is performing regex matching under the hood, but automatically ignores comments
+      // and string contents so it's more reliable on JS syntax.
+      tippex.match(
+        code,
+        workerRegexp,
+        (
+          fullMatch,
+          directWorkerFile,
+          workerFile = directWorkerFile,
+          optionsStr = ""
+        ) => {
+          let workerIdPromise;
+          if (directWorkerFile === "import.meta.url") {
+            // Turn the current file into a chunk
+            workerIdPromise = Promise.resolve(id);
+          } else {
+            // Otherwise it's a string literal either directly or in the URL
+            // constructor, which we treat as the same thing.
+            // Cut off surrounding quotes.
+            workerFile = workerFile.slice(1, -1);
+
+            if (!/^\.{0,2}\//.test(workerFile)) {
+              this.warn(
+                `Paths passed to the Worker constructor must be relative or absolute, i.e. start with /, ./ or ../ (just like dynamic import!). Ignoring "${workerFile}".`
+              );
+              return;
+            }
+
+            workerIdPromise = this.resolve(workerFile, id).then(res => res.id);
+          }
+
+          // We need to get this before the `await`, otherwise `lastIndex`
+          // will be already overridden.
+          const matchIndex = workerRegexp.lastIndex - fullMatch.length;
+          const workerParametersStartIndex = matchIndex + "new Worker(".length;
+          const workerParametersEndIndex =
+            matchIndex + fullMatch.length - ")".length;
+
+          // Parse the optional options object if provided.
+          optionsStr = optionsStr.trim();
+          if (optionsStr) {
+            let optionsObject = new Function(`return ${optionsStr};`)();
+            if (!isEsmOutput) {
+              delete optionsObject.type;
+            }
+            optionsStr = JSON.stringify(optionsObject);
+            optionsStr = optionsStr === "{}" ? "" : `, ${optionsStr}`;
+          }
+
+          // tippex.match accepts only sync callback, but we want to perform &
+          // wait for async job here, so we track those promises separately.
+          replacementPromises.push(
+            (async () => {
+              const resolvedWorkerFile = await workerIdPromise;
+              workerFiles.push(resolvedWorkerFile);
+              const chunkRefId = this.emitFile({
+                id: resolvedWorkerFile,
+                type: "chunk"
+              });
+
+              ms.overwrite(
+                workerParametersStartIndex,
+                workerParametersEndIndex,
+                `import.meta.ROLLUP_FILE_URL_${chunkRefId}${optionsStr}`
+              );
+            })()
+          );
+        }
       );
-      if (!workerRegexp.test(code)) {
+
+      // No matches found.
+      if (!replacementPromises.length) {
         return;
       }
 
-      const ms = new MagicString(code);
-      // Reset the regexp
-      workerRegexp.lastIndex = 0;
-      while (true) {
-        const match = workerRegexp.exec(code);
-        if (!match) {
-          break;
-        }
-
-        let workerFile = match[1].trim();
-        if (workerFile === "import.meta.url") {
-          // Turn the current file into a chunk
-          this.emitFile({
-            type: "chunk",
-            id
-          });
-          continue;
-        }
-        // Otherwise it has to be a string literal if this plugin
-        // is to do its job.
-        if (!/^(["'`]).+["'`]$/.test(workerFile)) {
-          this.warn(
-            `Can only handle string literals in the worker constructor. Ignoring ${workerFile}.`
-          );
-          continue;
-        }
-        // Cut of surrounding quotes.
-        workerFile = workerFile.slice(1, -1);
-
-        let optionsObject = {};
-        // Parse the optional options object
-        if (match[2] && match[2].length > 0) {
-          // FIXME: ooooof!
-          // slice(1) to cut off leading comma
-          optionsObject = new Function(`return ${match[2].slice(1)};`)();
-        }
-        if (!isEsmOutput) {
-          delete optionsObject.type;
-        }
-
-        if (!new RegExp("^.*/").test(workerFile)) {
-          this.warn(
-            `Paths passed to the Worker constructor must be relative or absolute, i.e. start with /, ./ or ../ (just like dynamic import!). Ignoring "${workerFile}".`
-          );
-          continue;
-        }
-
-        const resolvedWorkerFile = (await this.resolve(workerFile, id)).id;
-        workerFiles.push(resolvedWorkerFile);
-        const chunkRefId = this.emitFile({
-          id: resolvedWorkerFile,
-          type: "chunk"
-        });
-
-        const workerParametersStartIndex = match.index + "new Worker(".length;
-        const workerParametersEndIndex =
-          match.index + match[0].length - ")".length;
-
-        ms.overwrite(
-          workerParametersStartIndex,
-          workerParametersEndIndex,
-          `import.meta.ROLLUP_FILE_URL_${chunkRefId}, ${JSON.stringify(
-            optionsObject
-          )}`
-        );
-      }
+      // Wait for all the scheduled replacements to finish.
+      await Promise.all(replacementPromises);
 
       return {
         code: ms.toString(),

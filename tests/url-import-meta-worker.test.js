@@ -11,14 +11,23 @@
  * limitations under the License.
  */
 
-/*
- * This is commented out and should be ignored by the plugin.
- * If it doesn't, Rollup and test will fail.
- * new Worker("non-existing-worker", { type: "module" });
- */
+describe("Worker", function() {
+  beforeEach(function() {
+    this.ifr = document.createElement("iframe");
+    document.body.append(this.ifr);
+  });
 
-// The type module should get removed for AMD format!
-const w = new Worker("./worker.js", { type: "module" });
-w.addEventListener("message", ev => {
-  window.parent.postMessage(ev.data, "*");
+  afterEach(function() {
+    this.ifr.remove();
+  });
+
+  it("loads transpiled modules", function(done) {
+    window.addEventListener("message", function l(ev) {
+      if (ev.data === "a") {
+        window.removeEventListener("message", l);
+        done();
+      }
+    });
+    this.ifr.src = "/base/tests/fixtures/url-import-meta-worker/build/runner.html";
+  });
 });
