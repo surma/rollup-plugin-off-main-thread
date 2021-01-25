@@ -12,7 +12,9 @@
  */
 
 // The type module should get removed for AMD format!
-const w = new Worker(new URL("./worker.js", import.meta.url), { type: "module" });
+const w = new Worker(new URL("./worker.js", import.meta.url), {
+  type: "module"
+});
 w.addEventListener("message", ev => {
   window.parent.postMessage(ev.data, "*");
 });

@@ -45,6 +45,14 @@ const worker = new Worker("./worker.js", { type: "module" });
 
 This will just work.
 
+If required, the plugin also supports explicitly module-relative paths:
+
+```js
+const worker = new Worker(new URL("./worker.js", import.meta.url), {
+  type: "module"
+});
+```
+
 ### Importing workers as URLs
 
 If your worker constructor doesn't match `workerRegexp` (see options below), you might find it easier to import the worker as a URL. In your project's code:
