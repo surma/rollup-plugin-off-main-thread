@@ -21,7 +21,7 @@ describe("Worker", function() {
     this.ifr.remove();
   });
 
-  it("loads transpiled modules", function(done) {
+  it("loads module-relative worker paths", function(done) {
     window.addEventListener("message", function l(ev) {
       if (ev.data === "a") {
         window.removeEventListener("message", l);

@@ -98,7 +98,7 @@ module.exports = function(opts = {}) {
       // - `new URL('...', import.meta.url)
       // - `new URL("...", import.meta.url)
       // Also matches optional options param.
-      const workerRegexp = /new\s+Worker\(\s*('.*?'|".*?"|import\.meta\.url|new\s+URL\(('.*?'|".*?"),\s*import\.meta\.url\))\s*(?:,(.+?))?\)/g;
+      const workerRegexp = /new\s+Worker\(\s*('.*?'|".*?"|import\.meta\.url|new\s+URL\(('.*?'|".*?"),\s*import\.meta\.url\))\s*(?:,(.+?))?\)/gs;
 
       const ms = new MagicString(code);
 
