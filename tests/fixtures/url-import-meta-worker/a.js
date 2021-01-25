@@ -11,23 +11,7 @@
  * limitations under the License.
  */
 
-describe("import.meta", function() {
-  beforeEach(function() {
-    this.ifr = document.createElement("iframe");
-    document.body.append(this.ifr);
-  });
-
-  afterEach(function() {
-    this.ifr.remove();
-  });
-
-  it("loads transpiled modules", function(done) {
-    window.addEventListener("message", function l(ev) {
-      if (/^https?:\/\/.+\.js$/.test(ev.data)) {
-        window.removeEventListener("message", l);
-        done();
-      }
-    });
-    this.ifr.src = "/base/tests/fixtures/import-meta/build/runner.html";
-  });
-});
+export default async function() {
+  const { default: f } = await import("./b.js");
+  self.postMessage(f());
+}

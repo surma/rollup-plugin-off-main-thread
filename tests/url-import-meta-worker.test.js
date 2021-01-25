@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-describe("import.meta", function() {
+describe("Worker", function() {
   beforeEach(function() {
     this.ifr = document.createElement("iframe");
     document.body.append(this.ifr);
@@ -23,11 +23,12 @@ describe("import.meta", function() {
 
   it("loads transpiled modules", function(done) {
     window.addEventListener("message", function l(ev) {
-      if (/^https?:\/\/.+\.js$/.test(ev.data)) {
+      if (ev.data === "a") {
         window.removeEventListener("message", l);
         done();
       }
     });
-    this.ifr.src = "/base/tests/fixtures/import-meta/build/runner.html";
+    this.ifr.src =
+      "/base/tests/fixtures/url-import-meta-worker/build/runner.html";
   });
 });

@@ -41,8 +41,10 @@ async function init() {
       "./tests/fixtures/amd-function-name/entry.js",
       "./tests/fixtures/single-default/entry.js",
       "./tests/fixtures/import-worker-url/entry.js",
+      "./tests/fixtures/import-meta-worker/entry.js",
       "./tests/fixtures/import-worker-url-custom-scheme/entry.js",
-      "./tests/fixtures/assets-in-worker/entry.js"
+      "./tests/fixtures/assets-in-worker/entry.js",
+      "./tests/fixtures/url-import-meta-worker/entry.js"
     ].map(async input => {
       const pathName = path.dirname(input);
       const outputOptions = {

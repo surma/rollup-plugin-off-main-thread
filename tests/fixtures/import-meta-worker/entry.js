@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Google Inc. All Rights Reserved.
+ * Copyright 2020 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -10,15 +10,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-/*
- * This is commented out and should be ignored by the plugin.
- * If it doesn't, Rollup and test will fail.
- * new Worker("non-existing-worker", { type: "module" });
- */
-
-// The type module should get removed for AMD format!
-const w = new Worker("./worker.js", { type: "module" });
-w.addEventListener("message", ev => {
-  window.parent.postMessage(ev.data, "*");
-});
+import { worker } from "./a.js";
+if (worker) {
+  worker.addEventListener("message", ev => {
+    window.parent.postMessage(ev.data, "*");
+  });
+}
+// This should not get bundled into the worker module
+if (self.postMessage) {
+  postMessage("xxx");
+}
