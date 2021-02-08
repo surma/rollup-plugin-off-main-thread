@@ -119,7 +119,7 @@ module.exports = function(opts = {}) {
           workerFile,
           optionsStrWithComma = "",
           optionsStr = "",
-          partAfterArgs,
+          partAfterArgs
         ) => {
           // We need to get this before the `await`, otherwise `lastIndex`
           // will be already overridden.
@@ -135,16 +135,22 @@ module.exports = function(opts = {}) {
               const fullReplacement = `new Worker(new URL(${directWorkerFile}, import.meta.url)${optionsStrWithComma})`;
 
               if (!longWarningAlreadyShown) {
-              this.warn(`rollup-plugin-off-main-thread:
+                this.warn(
+                  `rollup-plugin-off-main-thread:
 \`${fullMatch}\` suggests that the Worker should be relative to the document, not the script.
 In the bundler, we don't know what the final document's URL will be, and instead assume it's a URL relative to the current module.
 This might lead to incorrect behaviour during runtime.
 If you did mean to use a URL relative to the current module, please change your code to the following form:
 \`${fullReplacement}\`
-This will become a hard error in the future.`, matchIndex);
-                  longWarningAlreadyShown = true;
+This will become a hard error in the future.`,
+                  matchIndex
+                );
+                longWarningAlreadyShown = true;
               } else {
-                this.warn(`rollup-plugin-off-main-thread: Treating \`${fullMatch}\` as \`${fullReplacement}\``, matchIndex);
+                this.warn(
+                  `rollup-plugin-off-main-thread: Treating \`${fullMatch}\` as \`${fullReplacement}\``,
+                  matchIndex
+                );
               }
               workerFile = directWorkerFile;
             }
