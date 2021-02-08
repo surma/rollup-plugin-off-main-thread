@@ -31,7 +31,7 @@ module.exports = function(config) {
     autoWatch: true,
     singleRun: true,
     concurrency: 1,
-    browsers: ["Chrome"],
+    browsers: ["Chrome", "Firefox", "Safari"],
     customLaunchers: {
       DockerChrome: {
         base: "ChromeHeadless",
