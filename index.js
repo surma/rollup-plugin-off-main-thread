@@ -37,6 +37,18 @@ const defaultOpts = {
   silenceESMWorkerWarning: false
 };
 
+// A regexp to find static `new Worker` invocations.
+// File part matches one of:
+// - '...'
+// - "..."
+// - `import.meta.url`
+// - `new URL('...', import.meta.url)
+// - `new URL("...", import.meta.url)
+// Also matches optional options param.
+const workerRegexp = /(new\s+Worker\()\s*(('.*?'|".*?")|import\.meta\.url|new\s+URL\(('.*?'|".*?"),\s*import\.meta\.url\))\s*(,(.+?))?(\))/gs;
+
+let longWarningAlreadyShown = false;
+
 module.exports = function(opts = {}) {
   opts = Object.assign({}, defaultOpts, opts);
 
@@ -90,16 +102,6 @@ module.exports = function(opts = {}) {
     },
 
     async transform(code, id) {
-      // A regexp to find static `new Worker` invocations.
-      // File part matches one of:
-      // - '...'
-      // - "..."
-      // - `import.meta.url`
-      // - `new URL('...', import.meta.url)
-      // - `new URL("...", import.meta.url)
-      // Also matches optional options param.
-      const workerRegexp = /new\s+Worker\(\s*('.*?'|".*?"|import\.meta\.url|new\s+URL\(('.*?'|".*?"),\s*import\.meta\.url\))\s*(?:,(.+?))?\)/gs;
-
       const ms = new MagicString(code);
 
       const replacementPromises = [];
@@ -111,23 +113,49 @@ module.exports = function(opts = {}) {
         workerRegexp,
         (
           fullMatch,
+          partBeforeArgs,
+          workerSource,
           directWorkerFile,
-          workerFile = directWorkerFile,
-          optionsStr = ""
+          workerFile,
+          optionsStrWithComma = "",
+          optionsStr = "",
+          partAfterArgs,
         ) => {
+          // We need to get this before the `await`, otherwise `lastIndex`
+          // will be already overridden.
+          const matchIndex = workerRegexp.lastIndex - fullMatch.length;
+
           let workerIdPromise;
-          if (directWorkerFile === "import.meta.url") {
+          if (workerSource === "import.meta.url") {
             // Turn the current file into a chunk
             workerIdPromise = Promise.resolve(id);
           } else {
-            // Otherwise it's a string literal either directly or in the URL
-            // constructor, which we treat as the same thing.
+            // Otherwise it's a string literal either directly or in the `new URL(...)`.
+            if (directWorkerFile) {
+              const fullReplacement = `new Worker(new URL(${directWorkerFile}, import.meta.url)${optionsStrWithComma})`;
+
+              if (!longWarningAlreadyShown) {
+              this.warn(`rollup-plugin-off-main-thread:
+\`${fullMatch}\` suggests that the Worker should be relative to the document, not the script.
+In the bundler, we don't know what the final document's URL will be, and instead assume it's a URL relative to the current module.
+This might lead to incorrect behaviour during runtime.
+If you did mean to use a URL relative to the current module, please change your code to the following form:
+\`${fullReplacement}\`
+This will become a hard error in the future.`, matchIndex);
+                  longWarningAlreadyShown = true;
+              } else {
+                this.warn(`rollup-plugin-off-main-thread: Treating \`${fullMatch}\` as \`${fullReplacement}\``, matchIndex);
+              }
+              workerFile = directWorkerFile;
+            }
+
             // Cut off surrounding quotes.
             workerFile = workerFile.slice(1, -1);
 
-            if (!/^\.{0,2}\//.test(workerFile)) {
+            if (!/^\.{1,2}\//.test(workerFile)) {
               this.warn(
-                `Paths passed to the Worker constructor must be relative or absolute, i.e. start with /, ./ or ../ (just like dynamic import!). Ignoring "${workerFile}".`
+                `Paths passed to the Worker constructor must be relative to the current file, i.e. start with ./ or ../ (just like dynamic import!). Ignoring "${workerFile}".`,
+                matchIndex
               );
               return;
             }
@@ -135,12 +163,9 @@ module.exports = function(opts = {}) {
             workerIdPromise = this.resolve(workerFile, id).then(res => res.id);
           }
 
-          // We need to get this before the `await`, otherwise `lastIndex`
-          // will be already overridden.
-          const matchIndex = workerRegexp.lastIndex - fullMatch.length;
-          const workerParametersStartIndex = matchIndex + "new Worker(".length;
+          const workerParametersStartIndex = matchIndex + partBeforeArgs.length;
           const workerParametersEndIndex =
-            matchIndex + fullMatch.length - ")".length;
+            matchIndex + fullMatch.length - partAfterArgs.length;
 
           // Parse the optional options object if provided.
           optionsStr = optionsStr.trim();
@@ -167,7 +192,7 @@ module.exports = function(opts = {}) {
               ms.overwrite(
                 workerParametersStartIndex,
                 workerParametersEndIndex,
-                `import.meta.ROLLUP_FILE_URL_${chunkRefId}${optionsStr}`
+                `new URL(import.meta.ROLLUP_FILE_URL_${chunkRefId}, import.meta.url)${optionsStr}`
               );
             })()
           );
