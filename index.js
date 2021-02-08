@@ -214,7 +214,7 @@ This will become a hard error in the future.`, matchIndex);
     },
 
     resolveFileUrl(chunk) {
-      return `"./${chunk.fileName}"`;
+      return JSON.stringify(chunk.relativePath);
     },
 
     renderChunk(code, chunk, outputOptions) {
