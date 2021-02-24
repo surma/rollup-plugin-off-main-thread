@@ -15,6 +15,7 @@ const rollup = require("rollup");
 const path = require("path");
 const omt = require(".");
 const fs = require("fs");
+const chalk = require("chalk");
 
 const karma = require("karma");
 const myKarmaConfig = require("./karma.conf.js");
@@ -53,7 +54,27 @@ async function init() {
       };
       let rollupConfig = {
         input,
-        strictDeprecations: true
+        strictDeprecations: true,
+        // Copied / adapted from default `onwarn` in Rollup CLI.
+        onwarn: warning => {
+          console.warn(`⚠️   ${chalk.bold(warning.message)}`);
+
+          if (warning.url) {
+            console.warn(chalk.cyan(warning.url));
+          }
+
+          if (warning.loc) {
+            console.warn(
+              `${warning.loc.file} (${warning.loc.line}:${warning.loc.column})`
+            );
+          }
+
+          if (warning.frame) {
+            console.warn(chalk.dim(warning.frame));
+          }
+
+          console.warn("");
+        }
       };
       const rollupConfigPath = "./" + path.join(pathName, "rollup.config.js");
       const configPath = "./" + path.join(pathName, "config.json");
