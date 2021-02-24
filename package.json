@@ -21,7 +21,7 @@
     "karma-safaritechpreview-launcher": "2.0.2",
     "mocha": "6.1.4",
     "prettier": "1.18.2",
-    "rollup": "2.0.0-0"
+    "rollup": "2.2.0"
   },
   "repository": {
     "type": "git",

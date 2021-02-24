@@ -223,11 +223,31 @@ This will become a hard error in the future.`,
       return JSON.stringify(chunk.relativePath);
     },
 
+    renderDynamicImport() {
+      if (isEsmOutput) return;
+
+      // In our loader, `require` simply return a promise directly.
+      // This is tinier and simpler output than the Rollup's default.
+      return {
+        left: 'require(',
+        right: ')'
+      };
+    },
+
+    resolveImportMeta(property) {
+      if (isEsmOutput) return;
+
+      if (property === 'url') {
+        // In our loader, `module.uri` is already fully resolved
+        // so we can emit something shorter than the Rollup's default.
+        return `module.uri`;
+      }
+    },
+
     renderChunk(code, chunk, outputOptions) {
       // We don’t need to do any loader processing when targeting ESM format.
-      if (isEsmOutput) {
-        return;
-      }
+      if (isEsmOutput) return;
+
       if (outputOptions.banner && outputOptions.banner.length > 0) {
         this.error(
           "OMT currently doesn’t work with `banner`. Feel free to submit a PR at https://github.com/surma/rollup-plugin-off-main-thread"
@@ -237,7 +257,6 @@ This will become a hard error in the future.`,
       const ms = new MagicString(code);
 
       // Mangle define() call
-      const id = `./${chunk.fileName}`;
       ms.remove(0, "define(".length);
       // If the module does not have any dependencies, it’s technically okay
       // to skip the dependency array. But our minimal loader expects it, so
@@ -245,7 +264,7 @@ This will become a hard error in the future.`,
       if (!code.startsWith("define([")) {
         ms.prepend("[],");
       }
-      ms.prepend(`${opts.amdFunctionName}("${id}",`);
+      ms.prepend(`${opts.amdFunctionName}(`);
 
       // Prepend loader if it’s an entry point or a worker file
       if (opts.prependLoader(chunk, workerFiles)) {
