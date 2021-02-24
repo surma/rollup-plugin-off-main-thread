@@ -11,6 +11,10 @@
  * limitations under the License.
  */
 
+// Import for side-effects (of which there are none)
+// to make sure that a.js gets its own chunk.
+import {someValue} from "./a.js";
+
 export default function() {
-  return "a";
+  return someValue();
 }
