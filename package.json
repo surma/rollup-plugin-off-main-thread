@@ -30,7 +30,6 @@
   "dependencies": {
     "ejs": "^2.6.1",
     "json5": "^2.2.0",
-    "magic-string": "^0.25.0",
-    "tippex": "^3.0.0"
+    "magic-string": "^0.25.0"
   }
 }

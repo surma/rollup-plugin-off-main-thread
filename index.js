@@ -15,7 +15,6 @@ const { readFileSync } = require("fs");
 const { join } = require("path");
 const ejs = require("ejs");
 const MagicString = require("magic-string");
-const tippex = require("tippex");
 const json5 = require("json5");
 
 const defaultOpts = {
@@ -98,89 +97,81 @@ module.exports = function(opts = {}) {
 
       const replacementPromises = [];
 
-      // Tippex is performing regex matching under the hood, but automatically ignores comments
-      // and string contents so it's more reliable on JS syntax.
-      tippex.match(
-        code,
-        workerRegexpForTransform,
-        (
+      for (const match of code.matchAll(workerRegexpForTransform)) {
+        let [
           fullMatch,
           partBeforeArgs,
           workerSource,
           directWorkerFile,
           workerFile,
-        ) => {
-          // We need to get this before the `await`, otherwise `lastIndex`
-          // will be already overridden.
-          const workerParametersEndIndex = workerRegexpForTransform.lastIndex;
-          const matchIndex = workerParametersEndIndex - fullMatch.length;
-          const workerParametersStartIndex = matchIndex + partBeforeArgs.length;
+        ] = match;
 
-          let workerIdPromise;
-          if (workerSource === "import.meta.url") {
-            // Turn the current file into a chunk
-            workerIdPromise = Promise.resolve(id);
-          } else {
-            // Otherwise it's a string literal either directly or in the `new URL(...)`.
-            if (directWorkerFile) {
-              const fullMatchWithOpts = `${fullMatch}, …)`;
-              const fullReplacement = `new Worker(new URL(${directWorkerFile}, import.meta.url), …)`;
+        const workerParametersEndIndex = match.index + fullMatch.length;
+        const matchIndex = match.index;
+        const workerParametersStartIndex = matchIndex + partBeforeArgs.length;
 
-              if (!longWarningAlreadyShown) {
-                this.warn(
-                  `rollup-plugin-off-main-thread:
+        let workerIdPromise;
+        if (workerSource === "import.meta.url") {
+          // Turn the current file into a chunk
+          workerIdPromise = Promise.resolve(id);
+        } else {
+          // Otherwise it's a string literal either directly or in the `new URL(...)`.
+          if (directWorkerFile) {
+            const fullMatchWithOpts = `${fullMatch}, …)`;
+            const fullReplacement = `new Worker(new URL(${directWorkerFile}, import.meta.url), …)`;
+
+            if (!longWarningAlreadyShown) {
+              this.warn(
+                `rollup-plugin-off-main-thread:
 \`${fullMatchWithOpts}\` suggests that the Worker should be relative to the document, not the script.
 In the bundler, we don't know what the final document's URL will be, and instead assume it's a URL relative to the current module.
 This might lead to incorrect behaviour during runtime.
 If you did mean to use a URL relative to the current module, please change your code to the following form:
 \`${fullReplacement}\`
 This will become a hard error in the future.`,
-                  matchIndex
-                );
-                longWarningAlreadyShown = true;
-              } else {
-                this.warn(
-                  `rollup-plugin-off-main-thread: Treating \`${fullMatchWithOpts}\` as \`${fullReplacement}\``,
-                  matchIndex
-                );
-              }
-              workerFile = directWorkerFile;
-            }
-
-            // Cut off surrounding quotes.
-            workerFile = workerFile.slice(1, -1);
-
-            if (!/^\.{1,2}\//.test(workerFile)) {
-              this.warn(
-                `Paths passed to the Worker constructor must be relative to the current file, i.e. start with ./ or ../ (just like dynamic import!). Ignoring "${workerFile}".`,
                 matchIndex
               );
-              return;
+              longWarningAlreadyShown = true;
+            } else {
+              this.warn(
+                `rollup-plugin-off-main-thread: Treating \`${fullMatchWithOpts}\` as \`${fullReplacement}\``,
+                matchIndex
+              );
             }
-
-            workerIdPromise = this.resolve(workerFile, id).then(res => res.id);
+            workerFile = directWorkerFile;
           }
 
-          // tippex.match accepts only sync callback, but we want to perform &
-          // wait for async job here, so we track those promises separately.
-          replacementPromises.push(
-            (async () => {
-              const resolvedWorkerFile = await workerIdPromise;
-              workerFiles.push(resolvedWorkerFile);
-              const chunkRefId = this.emitFile({
-                id: resolvedWorkerFile,
-                type: "chunk"
-              });
+          // Cut off surrounding quotes.
+          workerFile = workerFile.slice(1, -1);
 
-              ms.overwrite(
-                workerParametersStartIndex,
-                workerParametersEndIndex,
-                `new URL(import.meta.ROLLUP_FILE_URL_${chunkRefId}, import.meta.url)`
-              );
-            })()
-          );
+          if (!/^\.{1,2}\//.test(workerFile)) {
+            this.warn(
+              `Paths passed to the Worker constructor must be relative to the current file, i.e. start with ./ or ../ (just like dynamic import!). Ignoring "${workerFile}".`,
+              matchIndex
+            );
+            continue;
+          }
+
+          workerIdPromise = this.resolve(workerFile, id).then(res => res.id);
         }
-      );
+
+        replacementPromises.push(
+          (async () => {
+            const resolvedWorkerFile = await workerIdPromise;
+            workerFiles.push(resolvedWorkerFile);
+            const chunkRefId = this.emitFile({
+              id: resolvedWorkerFile,
+              type: "chunk"
+            });
+
+            ms.overwrite(
+              workerParametersStartIndex,
+              workerParametersEndIndex,
+              `new URL(import.meta.ROLLUP_FILE_URL_${chunkRefId}, import.meta.url)`
+            );
+          })()
+        );
+      }
 
       // No matches found.
       if (!replacementPromises.length) {
@@ -251,8 +242,8 @@ This will become a hard error in the future.`,
       }
       const ms = new MagicString(code);
 
-      tippex.match(code, workerRegexpForOutput, (fullMatch, optionsWithCommaStr, optionsStr) => {
-        let options;
+      for (const match of code.matchAll(workerRegexpForOutput)) {
+        let [fullMatch, optionsWithCommaStr, optionsStr] = match;
         try {
           options = json5.parse(optionsStr);
         } catch (e) {
@@ -260,14 +251,14 @@ This will become a hard error in the future.`,
           // parentheses or something like that. In that case, treat it as a warning
           // and not a hard error, just like we wouldn't break on unmatched regex.
           console.warn("Couldn't match options object", fullMatch, ": ", e);
-          return;
+          continue;
         }
         if (!("type" in options)) {
           // Nothing to do.
-          return;
+          continue;
         }
         delete options.type;
-        const replacementEnd = workerRegexpForOutput.lastIndex;
+        const replacementEnd = match.index + fullMatch.length;
         const replacementStart = replacementEnd - optionsWithCommaStr.length;
         optionsStr = json5.stringify(options);
         optionsWithCommaStr = optionsStr === "{}" ? "" : `, ${optionsStr}`;
@@ -276,7 +267,7 @@ This will become a hard error in the future.`,
           replacementEnd,
           optionsWithCommaStr
         );
-      });
+      }
 
       // Mangle define() call
       ms.remove(0, "define(".length);
@@ -293,9 +284,12 @@ This will become a hard error in the future.`,
         ms.prepend(opts.loader);
       }
 
+      const newCode = ms.toString();
+      const hasCodeChanged = code !== newCode;
       return {
-        code: ms.toString(),
-        map: ms.generateMap({ hires: true })
+        code: newCode,
+        // Avoid generating sourcemaps if possible as it can be a very expensive operation
+        map: hasCodeChanged ? ms.generateMap({ hires: true }) : null
       };
     }
   };
