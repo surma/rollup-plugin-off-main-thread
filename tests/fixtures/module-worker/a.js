@@ -11,7 +11,10 @@
  * limitations under the License.
  */
 
-export default async function() {
-  const { default: f } = await import("./b.js");
+export default async function(f) {
   self.postMessage(f());
+}
+
+export function someValue() {
+  return self.String("a");
 }

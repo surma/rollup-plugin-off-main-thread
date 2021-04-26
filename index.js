@@ -16,6 +16,7 @@ const { join } = require("path");
 const ejs = require("ejs");
 const MagicString = require("magic-string");
 const tippex = require("tippex");
+const json5 = require("json5");
 
 const defaultOpts = {
   // A string containing the EJS template for the amd loader. If `undefined`,
@@ -37,6 +38,25 @@ const defaultOpts = {
   silenceESMWorkerWarning: false
 };
 
+// A regexp to find static `new Worker` invocations.
+// Matches `new Worker(...file part...`
+// File part matches one of:
+// - '...'
+// - "..."
+// - `import.meta.url`
+// - new URL('...', import.meta.url)
+// - new URL("...", import.meta.url)
+const workerRegexpForTransform = /(new\s+Worker\()\s*(('.*?'|".*?")|import\.meta\.url|new\s+URL\(('.*?'|".*?"),\s*import\.meta\.url\))/gs;
+
+// A regexp to find static `new Worker` invocations we've rewritten during the transform phase.
+// Matches `new Worker(...file part..., ...options...`.
+// File part matches one of:
+// - new URL('...', module.uri)
+// - new URL("...", module.uri)
+const workerRegexpForOutput = /new\s+Worker\(new\s+URL\((?:'.*?'|".*?"),\s*module\.uri\)\s*(,([^)]+))/gs;
+
+let longWarningAlreadyShown = false;
+
 module.exports = function(opts = {}) {
   opts = Object.assign({}, defaultOpts, opts);
 
@@ -45,28 +65,12 @@ module.exports = function(opts = {}) {
   const urlLoaderPrefix = opts.urlLoaderScheme + ":";
 
   let workerFiles;
-  let isEsmOutput = false;
+  let isEsmOutput = () => { throw new Error("outputOptions hasn't been called yet") };
   return {
     name: "off-main-thread",
 
     async buildStart(options) {
       workerFiles = [];
-    },
-
-    outputOptions({ format }) {
-      if (format === "esm" || format === "es") {
-        if (!opts.silenceESMWorkerWarning) {
-          this.warn(
-            'Very few browsers support ES modules in Workers. If you want to your code to run in all browsers, set `output.format = "amd";`'
-          );
-        }
-        // In ESM, we never prepend a loader.
-        isEsmOutput = true;
-      } else if (format !== "amd") {
-        this.error(
-          `\`output.format\` must either be "amd" or "esm", got "${format}"`
-        );
-      }
     },
 
     async resolveId(id, importer) {
@@ -90,16 +94,6 @@ module.exports = function(opts = {}) {
     },
 
     async transform(code, id) {
-      // A regexp to find static `new Worker` invocations.
-      // File part matches one of:
-      // - '...'
-      // - "..."
-      // - `import.meta.url`
-      // - `new URL('...', import.meta.url)
-      // - `new URL("...", import.meta.url)
-      // Also matches optional options param.
-      const workerRegexp = /new\s+Worker\(\s*('.*?'|".*?"|import\.meta\.url|new\s+URL\(('.*?'|".*?"),\s*import\.meta\.url\))\s*(?:,(.+?))?\)/gs;
-
       const ms = new MagicString(code);
 
       const replacementPromises = [];
@@ -108,49 +102,63 @@ module.exports = function(opts = {}) {
       // and string contents so it's more reliable on JS syntax.
       tippex.match(
         code,
-        workerRegexp,
+        workerRegexpForTransform,
         (
           fullMatch,
+          partBeforeArgs,
+          workerSource,
           directWorkerFile,
-          workerFile = directWorkerFile,
-          optionsStr = ""
+          workerFile,
         ) => {
+          // We need to get this before the `await`, otherwise `lastIndex`
+          // will be already overridden.
+          const workerParametersEndIndex = workerRegexpForTransform.lastIndex;
+          const matchIndex = workerParametersEndIndex - fullMatch.length;
+          const workerParametersStartIndex = matchIndex + partBeforeArgs.length;
+
           let workerIdPromise;
-          if (directWorkerFile === "import.meta.url") {
+          if (workerSource === "import.meta.url") {
             // Turn the current file into a chunk
             workerIdPromise = Promise.resolve(id);
           } else {
-            // Otherwise it's a string literal either directly or in the URL
-            // constructor, which we treat as the same thing.
+            // Otherwise it's a string literal either directly or in the `new URL(...)`.
+            if (directWorkerFile) {
+              const fullMatchWithOpts = `${fullMatch}, …)`;
+              const fullReplacement = `new Worker(new URL(${directWorkerFile}, import.meta.url), …)`;
+
+              if (!longWarningAlreadyShown) {
+                this.warn(
+                  `rollup-plugin-off-main-thread:
+\`${fullMatchWithOpts}\` suggests that the Worker should be relative to the document, not the script.
+In the bundler, we don't know what the final document's URL will be, and instead assume it's a URL relative to the current module.
+This might lead to incorrect behaviour during runtime.
+If you did mean to use a URL relative to the current module, please change your code to the following form:
+\`${fullReplacement}\`
+This will become a hard error in the future.`,
+                  matchIndex
+                );
+                longWarningAlreadyShown = true;
+              } else {
+                this.warn(
+                  `rollup-plugin-off-main-thread: Treating \`${fullMatchWithOpts}\` as \`${fullReplacement}\``,
+                  matchIndex
+                );
+              }
+              workerFile = directWorkerFile;
+            }
+
             // Cut off surrounding quotes.
             workerFile = workerFile.slice(1, -1);
 
-            if (!/^\.{0,2}\//.test(workerFile)) {
+            if (!/^\.{1,2}\//.test(workerFile)) {
               this.warn(
-                `Paths passed to the Worker constructor must be relative or absolute, i.e. start with /, ./ or ../ (just like dynamic import!). Ignoring "${workerFile}".`
+                `Paths passed to the Worker constructor must be relative to the current file, i.e. start with ./ or ../ (just like dynamic import!). Ignoring "${workerFile}".`,
+                matchIndex
               );
               return;
             }
 
             workerIdPromise = this.resolve(workerFile, id).then(res => res.id);
-          }
-
-          // We need to get this before the `await`, otherwise `lastIndex`
-          // will be already overridden.
-          const matchIndex = workerRegexp.lastIndex - fullMatch.length;
-          const workerParametersStartIndex = matchIndex + "new Worker(".length;
-          const workerParametersEndIndex =
-            matchIndex + fullMatch.length - ")".length;
-
-          // Parse the optional options object if provided.
-          optionsStr = optionsStr.trim();
-          if (optionsStr) {
-            let optionsObject = new Function(`return ${optionsStr};`)();
-            if (!isEsmOutput) {
-              delete optionsObject.type;
-            }
-            optionsStr = JSON.stringify(optionsObject);
-            optionsStr = optionsStr === "{}" ? "" : `, ${optionsStr}`;
           }
 
           // tippex.match accepts only sync callback, but we want to perform &
@@ -167,7 +175,7 @@ module.exports = function(opts = {}) {
               ms.overwrite(
                 workerParametersStartIndex,
                 workerParametersEndIndex,
-                `import.meta.ROLLUP_FILE_URL_${chunkRefId}${optionsStr}`
+                `new URL(import.meta.ROLLUP_FILE_URL_${chunkRefId}, import.meta.url)`
               );
             })()
           );
@@ -189,14 +197,52 @@ module.exports = function(opts = {}) {
     },
 
     resolveFileUrl(chunk) {
-      return `"./${chunk.fileName}"`;
+      return JSON.stringify(chunk.relativePath);
+    },
+
+    outputOptions({ format }) {
+      if (format === "esm" || format === "es") {
+        if (!opts.silenceESMWorkerWarning) {
+          this.warn(
+            'Very few browsers support ES modules in Workers. If you want to your code to run in all browsers, set `output.format = "amd";`'
+          );
+        }
+        // In ESM, we never prepend a loader.
+        isEsmOutput = () => true;
+      } else if (format !== "amd") {
+        this.error(
+          `\`output.format\` must either be "amd" or "esm", got "${format}"`
+        );
+      } else {
+        isEsmOutput = () => false;
+      }
+    },
+
+    renderDynamicImport() {
+      if (isEsmOutput()) return;
+
+      // In our loader, `require` simply return a promise directly.
+      // This is tinier and simpler output than the Rollup's default.
+      return {
+        left: 'require(',
+        right: ')'
+      };
+    },
+
+    resolveImportMeta(property) {
+      if (isEsmOutput()) return;
+
+      if (property === 'url') {
+        // In our loader, `module.uri` is already fully resolved
+        // so we can emit something shorter than the Rollup's default.
+        return `module.uri`;
+      }
     },
 
     renderChunk(code, chunk, outputOptions) {
       // We don’t need to do any loader processing when targeting ESM format.
-      if (isEsmOutput) {
-        return;
-      }
+      if (isEsmOutput()) return;
+
       if (outputOptions.banner && outputOptions.banner.length > 0) {
         this.error(
           "OMT currently doesn’t work with `banner`. Feel free to submit a PR at https://github.com/surma/rollup-plugin-off-main-thread"
@@ -205,8 +251,34 @@ module.exports = function(opts = {}) {
       }
       const ms = new MagicString(code);
 
+      tippex.match(code, workerRegexpForOutput, (fullMatch, optionsWithCommaStr, optionsStr) => {
+        let options;
+        try {
+          options = json5.parse(optionsStr);
+        } catch (e) {
+          // If we couldn't parse the options object, maybe it's something dynamic or has nested
+          // parentheses or something like that. In that case, treat it as a warning
+          // and not a hard error, just like we wouldn't break on unmatched regex.
+          console.warn("Couldn't match options object", fullMatch, ": ", e);
+          return;
+        }
+        if (!("type" in options)) {
+          // Nothing to do.
+          return;
+        }
+        delete options.type;
+        const replacementEnd = workerRegexpForOutput.lastIndex;
+        const replacementStart = replacementEnd - optionsWithCommaStr.length;
+        optionsStr = json5.stringify(options);
+        optionsWithCommaStr = optionsStr === "{}" ? "" : `, ${optionsStr}`;
+        ms.overwrite(
+          replacementStart,
+          replacementEnd,
+          optionsWithCommaStr
+        );
+      });
+
       // Mangle define() call
-      const id = `./${chunk.fileName}`;
       ms.remove(0, "define(".length);
       // If the module does not have any dependencies, it’s technically okay
       // to skip the dependency array. But our minimal loader expects it, so
@@ -214,7 +286,7 @@ module.exports = function(opts = {}) {
       if (!code.startsWith("define([")) {
         ms.prepend("[],");
       }
-      ms.prepend(`${opts.amdFunctionName}("${id}",`);
+      ms.prepend(`${opts.amdFunctionName}(`);
 
       // Prepend loader if it’s an entry point or a worker file
       if (opts.prependLoader(chunk, workerFiles)) {

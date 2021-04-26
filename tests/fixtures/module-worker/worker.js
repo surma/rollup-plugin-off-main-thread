@@ -12,6 +12,6 @@
  */
 
 import a from "./a.js";
-
-a();
-import("./b.js");
+import("./b.js").then(({default: f}) => {
+  a(f);
+})
