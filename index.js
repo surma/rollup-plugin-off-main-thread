@@ -11,6 +11,8 @@
  * limitations under the License.
  */
 
+"use strict";
+
 const { readFileSync } = require("fs");
 const { join } = require("path");
 const ejs = require("ejs");
@@ -244,6 +246,7 @@ This will become a hard error in the future.`,
 
       for (const match of code.matchAll(workerRegexpForOutput)) {
         let [fullMatch, optionsWithCommaStr, optionsStr] = match;
+        let options;
         try {
           options = json5.parse(optionsStr);
         } catch (e) {
