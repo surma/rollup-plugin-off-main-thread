@@ -54,7 +54,7 @@ if (!self.<%- amdFunctionName %>) {
   };
 
   self.<%- amdFunctionName %> = (depsNames, factory) => {
-    const uri = nextDefineUri || ("document" in self ? document.currentScript.src : location.href);
+    const uri = nextDefineUri || ("document" in self ? document.currentScript.src : "") || location.href;
     if (registry[uri]) {
       // Module is already loading or loaded.
       return;
