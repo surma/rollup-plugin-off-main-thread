@@ -37,21 +37,27 @@ export default {
 
 ### Auto bundling
 
-In your project's code:
+In your project's code use a module-relative path via `new URL` to include a Worker:
+
+```js
+const worker = new Worker(new URL("worker.js", import.meta.url), {
+  type: "module"
+});
+```
+
+This will just work.
+
+If required, the plugin also supports plain literal paths:
 
 ```js
 const worker = new Worker("./worker.js", { type: "module" });
 ```
 
-This will just work.
+However, those are less portable: in Rollup they would result in module-relative
+path, but if used directly in the browser, they'll be relative to the document
+URL instead.
 
-If required, the plugin also supports explicitly module-relative paths:
-
-```js
-const worker = new Worker(new URL("./worker.js", import.meta.url), {
-  type: "module"
-});
-```
+Hence, they're deprecated and `new URL` pattern is encouraged instead for portability.
 
 ### Importing workers as URLs
 
