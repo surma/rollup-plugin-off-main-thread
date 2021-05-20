@@ -147,11 +147,28 @@ This will become a hard error in the future.`,
           workerFile = workerFile.slice(1, -1);
 
           if (!/^\.{1,2}\//.test(workerFile)) {
-            this.warn(
-              `Paths passed to the Worker constructor must be relative to the current file, i.e. start with ./ or ../ (just like dynamic import!). Ignoring "${workerFile}".`,
-              matchIndex
-            );
-            continue;
+            let isError = false;
+            if (directWorkerFile) {
+              // If direct worker file, it must be in `./something` form.
+              isError = true;
+            } else {
+              // If `new URL(...)` it can be in `new URL('something', import.meta.url)` form too,
+              // so just check it's not absolute.
+              if (/^(\/|https?:)/.test(workerFile)) {
+                isError = true;
+              } else {
+                // If it does turn out to be `new URL('something', import.meta.url)` form,
+                // prepend `./` so that it becomes valid module specifier.
+                workerFile = `./${workerFile}`;
+              }
+            }
+            if (isError) {
+              this.warn(
+                `Paths passed to the Worker constructor must be relative to the current file, i.e. start with ./ or ../ (just like dynamic import!). Ignoring "${workerFile}".`,
+                matchIndex
+              );
+              continue;
+            }
           }
 
           workerIdPromise = this.resolve(workerFile, id).then(res => res.id);
