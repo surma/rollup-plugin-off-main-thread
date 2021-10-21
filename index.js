@@ -18,6 +18,10 @@ const { join } = require("path");
 const ejs = require("ejs");
 const MagicString = require("magic-string");
 const json5 = require("json5");
+const matchAll = require("string.prototype.matchall");
+
+// See https://github.com/surma/rollup-plugin-off-main-thread/issues/49
+matchAll.shim();
 
 const defaultOpts = {
   // A string containing the EJS template for the amd loader. If `undefined`,
