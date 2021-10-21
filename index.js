@@ -18,10 +18,8 @@ const { join } = require("path");
 const ejs = require("ejs");
 const MagicString = require("magic-string");
 const json5 = require("json5");
-const matchAll = require("string.prototype.matchall");
-
 // See https://github.com/surma/rollup-plugin-off-main-thread/issues/49
-matchAll.shim();
+const matchAll = require("string.prototype.matchall");
 
 const defaultOpts = {
   // A string containing the EJS template for the amd loader. If `undefined`,
@@ -103,7 +101,7 @@ module.exports = function(opts = {}) {
 
       const replacementPromises = [];
 
-      for (const match of code.matchAll(workerRegexpForTransform)) {
+      for (const match of matchAll(code, workerRegexpForTransform)) {
         let [
           fullMatch,
           partBeforeArgs,
@@ -265,7 +263,7 @@ This will become a hard error in the future.`,
       }
       const ms = new MagicString(code);
 
-      for (const match of code.matchAll(workerRegexpForOutput)) {
+      for (const match of matchAll(code, workerRegexpForOutput)) {
         let [fullMatch, optionsWithCommaStr, optionsStr] = match;
         let options;
         try {
