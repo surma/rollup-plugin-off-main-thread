@@ -14,7 +14,7 @@
 "use strict";
 
 const { readFileSync } = require("fs");
-const { join } = require("path");
+const { join, resolve, relative, isAbsolute } = require("path");
 const ejs = require("ejs");
 const MagicString = require("magic-string");
 const json5 = require("json5");
@@ -60,6 +60,12 @@ const workerRegexpForOutput = /new\s+Worker\(new\s+URL\((?:'.*?'|".*?"),\s*modul
 
 let longWarningAlreadyShown = false;
 
+// Logic from rollup src/utils/relativeId.ts
+function relativeId(id) {
+  if (!isAbsolute(id)) return id;
+  return relative(resolve(), id);
+}
+
 module.exports = function(opts = {}) {
   opts = Object.assign({}, defaultOpts, opts);
 
@@ -80,19 +86,29 @@ module.exports = function(opts = {}) {
       if (!id.startsWith(urlLoaderPrefix)) return;
 
       const path = id.slice(urlLoaderPrefix.length);
-      const resolved = await this.resolve(path, importer);
+      const resolved = await this.resolve(path, importer, {skipSelf: true});
       if (!resolved)
         throw Error(`Cannot find module '${path}' from '${importer}'`);
-      const newId = resolved.id;
-
-      return urlLoaderPrefix + newId;
+      const resolvedPathRel = relativeId(resolved.id);
+      return {
+        ...resolved,
+        id: urlLoaderPrefix + resolvedPathRel,
+        meta: {
+          ...resolved.meta,
+          omt: { realId: resolved.id, importer },
+        },
+      };
     },
 
     load(id) {
-      if (!id.startsWith(urlLoaderPrefix)) return;
+      const {meta} = this.getModuleInfo(id);
+      if (!meta.omt) return;
 
-      const realId = id.slice(urlLoaderPrefix.length);
-      const chunkRef = this.emitFile({ id: realId, type: "chunk" });
+      const chunkRef = this.emitFile({
+        type: "chunk",
+        id: meta.omt.realId,
+        importer: meta.omt.importer,
+      });
       return `export default import.meta.ROLLUP_FILE_URL_${chunkRef};`;
     },
 
